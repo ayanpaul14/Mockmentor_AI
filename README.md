@@ -15,7 +15,7 @@
 
 <br/>
 
-**[Live Demo](https://mockmentor-ai.vercel.app)** • **[Report Bug](https://github.com/ayanpaul14/Mockmentor_AI/issues)** • **[Request Feature](https://github.com/ayanpaul14/Mockmentor_AI/issues)**
+**([![Live Demo](https://img.shields.io/badge/Live-Demo-6366f1?style=flat-square&logo=vercel)](https://mockmentor-ai.vercel.app))** • **[Report Bug](https://github.com/ayanpaul14/Mockmentor_AI/issues)** • **[Request Feature](https://github.com/ayanpaul14/Mockmentor_AI/issues)**
 
 <br/>
 
