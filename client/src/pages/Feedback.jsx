@@ -1,5 +1,5 @@
 import { useLocation, useNavigate } from 'react-router-dom';
-import ScoreBar from '../components/Scorebar';
+import ScoreBar from '../components/ScoreBar';
 import Footer from '../components/Footer';
 
 export default function Feedback() {
