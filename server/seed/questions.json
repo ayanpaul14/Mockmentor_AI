@@ -1,0 +1,170 @@
+[
+  {
+    "role": "SDE",
+    "level": "Fresher",
+    "topic": "Data Structures",
+    "question": "Explain how a hash map works and when you would use one.",
+    "expectedKeywords": ["hash function", "key-value", "collision", "O(1)", "chaining", "load factor"]
+  },
+  {
+    "role": "SDE",
+    "level": "Fresher",
+    "topic": "Data Structures",
+    "question": "What is the difference between a stack and a queue? Give a real-world example of each.",
+    "expectedKeywords": ["LIFO", "FIFO", "push", "pop", "enqueue", "dequeue", "recursion", "BFS"]
+  },
+  {
+    "role": "SDE",
+    "level": "Fresher",
+    "topic": "OOP",
+    "question": "What is polymorphism in object-oriented programming? Explain with an example.",
+    "expectedKeywords": ["overriding", "overloading", "runtime", "compile-time", "interface", "inheritance"]
+  },
+  {
+    "role": "SDE",
+    "level": "Fresher",
+    "topic": "OOP",
+    "question": "Explain the concept of inheritance and its advantages and disadvantages.",
+    "expectedKeywords": ["parent class", "child class", "reusability", "extends", "tight coupling", "override"]
+  },
+  {
+    "role": "SDE",
+    "level": "Fresher",
+    "topic": "Algorithms",
+    "question": "What is the difference between BFS and DFS? When would you use each?",
+    "expectedKeywords": ["breadth-first", "depth-first", "queue", "stack", "shortest path", "tree traversal", "graph"]
+  },
+  {
+    "role": "SDE",
+    "level": "Fresher",
+    "topic": "Algorithms",
+    "question": "Explain the time and space complexity of bubble sort. Why is it rarely used in production?",
+    "expectedKeywords": ["O(n2)", "O(1)", "in-place", "comparison", "best case", "worst case", "inefficient"]
+  },
+  {
+    "role": "SDE",
+    "level": "Fresher",
+    "topic": "System Design",
+    "question": "What is the difference between SQL and NoSQL databases? When would you choose one over the other?",
+    "expectedKeywords": ["relational", "schema", "ACID", "scalability", "flexible", "MongoDB", "joins", "horizontal scaling"]
+  },
+  {
+    "role": "SDE",
+    "level": "Fresher",
+    "topic": "Operating Systems",
+    "question": "What is a deadlock? What are the four conditions required for a deadlock to occur?",
+    "expectedKeywords": ["mutual exclusion", "hold and wait", "no preemption", "circular wait", "resource", "process"]
+  },
+  {
+    "role": "SDE",
+    "level": "Experienced",
+    "topic": "System Design",
+    "question": "Design a URL shortener like bit.ly. Walk through your architecture choices.",
+    "expectedKeywords": ["hashing", "base62", "database", "cache", "Redis", "load balancer", "scalability", "CDN", "analytics"]
+  },
+  {
+    "role": "SDE",
+    "level": "Experienced",
+    "topic": "System Design",
+    "question": "How would you design a rate limiter for an API? Explain different algorithms.",
+    "expectedKeywords": ["token bucket", "sliding window", "fixed window", "Redis", "distributed", "throttling", "middleware"]
+  },
+  {
+    "role": "SDE",
+    "level": "Experienced",
+    "topic": "Data Structures",
+    "question": "Explain consistent hashing and why it is used in distributed systems.",
+    "expectedKeywords": ["ring", "virtual nodes", "hash space", "rebalancing", "distributed cache", "fault tolerance"]
+  },
+  {
+    "role": "SDE",
+    "level": "Experienced",
+    "topic": "Concurrency",
+    "question": "What is the difference between a process and a thread? Explain race conditions and how to prevent them.",
+    "expectedKeywords": ["memory space", "lightweight", "mutex", "semaphore", "lock", "synchronization", "atomic", "deadlock"]
+  },
+  {
+    "role": "Data Analyst",
+    "level": "Fresher",
+    "topic": "SQL",
+    "question": "What is the difference between INNER JOIN, LEFT JOIN, and RIGHT JOIN? Give an example use case for each.",
+    "expectedKeywords": ["matching rows", "all rows", "NULL", "left table", "right table", "intersection"]
+  },
+  {
+    "role": "Data Analyst",
+    "level": "Fresher",
+    "topic": "SQL",
+    "question": "Explain what a GROUP BY clause does in SQL. What is the difference between WHERE and HAVING?",
+    "expectedKeywords": ["aggregate", "GROUP BY", "HAVING", "WHERE", "filter", "COUNT", "SUM", "before grouping", "after grouping"]
+  },
+  {
+    "role": "Data Analyst",
+    "level": "Fresher",
+    "topic": "Statistics",
+    "question": "Explain the difference between mean, median, and mode. When would you use median over mean?",
+    "expectedKeywords": ["average", "middle value", "most frequent", "outliers", "skewed", "distribution"]
+  },
+  {
+    "role": "Data Analyst",
+    "level": "Fresher",
+    "topic": "Data Cleaning",
+    "question": "How would you handle missing values in a dataset? Describe at least three approaches.",
+    "expectedKeywords": ["imputation", "mean imputation", "drop rows", "forward fill", "domain knowledge", "MCAR", "median"]
+  },
+  {
+    "role": "Data Analyst",
+    "level": "Experienced",
+    "topic": "SQL",
+    "question": "Explain window functions in SQL. Give an example using ROW_NUMBER, RANK, or LAG.",
+    "expectedKeywords": ["OVER", "PARTITION BY", "ORDER BY", "ROW_NUMBER", "RANK", "LAG", "LEAD", "running total"]
+  },
+  {
+    "role": "Data Analyst",
+    "level": "Experienced",
+    "topic": "Statistics",
+    "question": "What is A/B testing? Walk through how you would design and analyse an A/B test.",
+    "expectedKeywords": ["hypothesis", "control group", "treatment group", "p-value", "statistical significance", "sample size", "confidence interval"]
+  },
+  {
+    "role": "Product Manager",
+    "level": "Fresher",
+    "topic": "Product Thinking",
+    "question": "How would you prioritise features when you have limited engineering resources? Walk through your framework.",
+    "expectedKeywords": ["RICE", "impact", "effort", "reach", "confidence", "stakeholders", "user value", "tradeoffs"]
+  },
+  {
+    "role": "Product Manager",
+    "level": "Fresher",
+    "topic": "Metrics",
+    "question": "What metrics would you track to measure the success of a new onboarding flow?",
+    "expectedKeywords": ["activation rate", "drop-off", "time to value", "completion rate", "retention", "DAU", "funnel"]
+  },
+  {
+    "role": "Product Manager",
+    "level": "Experienced",
+    "topic": "Product Strategy",
+    "question": "How do you decide when to build a feature vs buy a third-party solution vs partner with another company?",
+    "expectedKeywords": ["core competency", "time to market", "cost", "control", "differentiation", "make vs buy", "integration", "vendor lock-in"]
+  },
+  {
+    "role": "DevOps",
+    "level": "Fresher",
+    "topic": "CI/CD",
+    "question": "Explain what a CI/CD pipeline is and the stages it typically involves.",
+    "expectedKeywords": ["continuous integration", "continuous deployment", "build", "test", "deploy", "automation", "pipeline", "artifact"]
+  },
+  {
+    "role": "DevOps",
+    "level": "Fresher",
+    "topic": "Docker",
+    "question": "What is Docker and what problem does it solve? What is the difference between an image and a container?",
+    "expectedKeywords": ["containerisation", "image", "container", "Dockerfile", "isolation", "portability", "environment", "layers"]
+  },
+  {
+    "role": "DevOps",
+    "level": "Experienced",
+    "topic": "Kubernetes",
+    "question": "Explain the core components of Kubernetes. What problem does it solve over plain Docker?",
+    "expectedKeywords": ["pod", "node", "cluster", "deployment", "service", "orchestration", "auto-scaling", "self-healing", "ingress"]
+  }
+]
