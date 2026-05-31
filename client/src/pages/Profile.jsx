@@ -1,11 +1,10 @@
-import React, { useState, useEffect, useContext } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-// Import your AuthContext to see who is logged in
-import { AuthContext } from '../context/AuthContext'; 
+import { useAuth } from '../context/AuthContext';
 import axios from '../api/axios';
 
 export default function Profile() {
-  const { user } = useContext(AuthContext); // Access global logged-in user object
+  const { user } = useAuth(); // Access global logged-in user object dynamically
   const [activeTab, setActiveTab] = useState('overview');
   const [profileData, setProfileData] = useState(null);
   const [loading, setLoading] = useState(true);
