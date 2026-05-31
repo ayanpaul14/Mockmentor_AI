@@ -73,18 +73,44 @@ router.post('/', protect, async (req, res) => {
     }
 
     await Session.create({
-      userId: req.user._id,
-      role, level, topic, question,
-      candidateAnswer: trimmed,
-      scores:      result.scores,
-      missedPoints: result.missed_points,
-      strengths:   result.strengths,
-      modelAnswer: result.model_answer,
-      verdict:     result.one_line_verdict,
-    });
+  userId: req.user._id,
+  role, level, topic, question,
+  candidateAnswer: trimmed,
+  scores:       result.scores,
+  missedPoints: result.missed_points,
+  strengths:    result.strengths,
+  modelAnswer:  result.model_answer,
+  verdict:      result.one_line_verdict,
+});
 
-    res.json({ success: true, result });
+// ── Streak calculation ──
+const today = new Date().toISOString().split('T')[0]; // 'YYYY-MM-DD'
+const user  = await User.findById(req.user._id);
 
+if (user.lastSessionDate === today) {
+  // Already practised today — no change
+} else if (user.lastSessionDate === getPreviousDay(today)) {
+  // Practised yesterday — extend streak
+  user.currentStreak  += 1;
+  user.longestStreak   = Math.max(user.longestStreak, user.currentStreak);
+} else {
+  // Missed a day or first ever session — reset
+  user.currentStreak  = 1;
+  user.longestStreak  = Math.max(user.longestStreak, 1);
+}
+
+user.lastSessionDate = today;
+await user.save();
+
+res.json({
+  success: true,
+  result,
+  streak: {
+    current: user.currentStreak,
+    longest: user.longestStreak,
+    isNewDay: user.lastSessionDate !== today,
+  }
+});
   } catch (err) {
     console.error('Evaluation error:', err.message);
     res.status(500).json({ error: 'Evaluation failed. Please try again.' });
