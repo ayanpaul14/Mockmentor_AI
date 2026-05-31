@@ -13,12 +13,21 @@ export default function Profile() {
     const fetchProfileDetails = async () => {
       try {
         setLoading(true);
-        // GET request to backend using the authenticated user's ID or secure token
-        const response = await axios.get(`/api/users/profile/${user?._id || 'me'}`);
+        
+        // 1. Grab the current user's session token from localStorage
+        const token = localStorage.getItem('token'); 
+
+        // 2. Point to the correct /api/auth/profile route and send authorization headers
+        const response = await axios.get(`/api/auth/profile/${user?._id || 'me'}`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+        
         setProfileData(response.data);
       } catch (error) {
         console.error("Error retrieving custom profile records:", error);
-        // Fallback placeholder data if backend api is still being configured
+        // Fallback placeholder data if backend api is failing or unreachable
         setProfileData({
           name: user?.name || 'Candidate Account',
           college: user?.college || 'Associated Institution',
@@ -26,16 +35,13 @@ export default function Profile() {
           location: user?.location || 'India',
           streakCount: user?.streakCount || 0,
           joinedDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recent Member',
-          overallScore: 75,
+          overallScore: 0,
           topicScores: [
-            { topic: 'Data Structures & Algorithms', score: 70, color: 'bg-cyan-500' },
-            { topic: 'System Design', score: 65, color: 'bg-indigo-500' },
-            { topic: 'DBMS & SQL', score: 80, color: 'bg-purple-500' },
-            { topic: 'Core Engineering Tracks', score: 75, color: 'bg-emerald-500' },
+            { topic: 'Data Structures & Algorithms', score: 0, color: 'bg-cyan-500' },
+            { topic: 'System Design', score: 0, color: 'bg-indigo-500' },
+            { topic: 'Core Engineering Tracks', score: 0, color: 'bg-emerald-500' },
           ],
-          badges: [
-            { id: 'welcome-badge', name: 'Verified Candidate', icon: '🎓', desc: 'Successfully configured dynamic placement preparation profile.', date: 'Joined' }
-          ],
+          badges: [],
           sessions: []
         });
       } finally {
@@ -55,7 +61,6 @@ export default function Profile() {
     const currentStreak = profileData?.streakCount || 0;
     
     for (let i = 1; i <= 90; i++) {
-      // If the user has a high streak, make their recent grid slots light up heavily
       let intensity = 'none';
       if (currentStreak > 0 && i > (90 - currentStreak)) {
         intensity = states[Math.floor(Math.random() * 2) + 2]; // high or medium activity
@@ -147,9 +152,7 @@ export default function Profile() {
         {activeTab === 'overview' && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             
-            {/* Left/Center Section - Consistency Map and Topic analytics */}
             <div className="lg:col-span-2 space-y-8">
-              
               {/* LeetCode Style Matrix Consistency Block */}
               <div className="bg-white border border-[#e8e4dc] rounded-2xl p-6 shadow-sm space-y-4">
                 <div className="flex justify-between items-center">
@@ -167,7 +170,6 @@ export default function Profile() {
                   </div>
                 </div>
 
-                {/* Grid Grid Alignment box wrapper */}
                 <div className="grid grid-flow-col grid-rows-5 gap-1.5 pt-2 overflow-x-auto select-none">
                   {calendarDays.map((cell) => {
                     let bgClass = 'bg-[#f1f5f9]';
@@ -206,10 +208,9 @@ export default function Profile() {
                   ))}
                 </div>
               </div>
-
             </div>
 
-            {/* Right Sticky Sidebar Section - Short Badges view panel */}
+            {/* Right Sticky Sidebar Section */}
             <div className="space-y-8">
               <div className="bg-white border border-[#e8e4dc] rounded-2xl p-6 shadow-sm space-y-4">
                 <div className="flex justify-between items-center">
@@ -227,6 +228,9 @@ export default function Profile() {
                       <div className="text-[10px] text-[#aaa] mt-0.5">{badge.date}</div>
                     </div>
                   ))}
+                  {(!profileData?.badges || profileData.badges.length === 0) && (
+                    <p className="text-xs text-[#aaa] italic col-span-2 text-center py-4">No milestones yet</p>
+                  )}
                 </div>
               </div>
             </div>
@@ -265,7 +269,7 @@ export default function Profile() {
             
             <div className="divide-y divide-[#f0ede6]">
               {profileData?.sessions?.map((session) => (
-                <div key={session.id} className="p-6 hover:bg-[#faf9f7] transition-colors space-y-4">
+                <div key={session.id || session._id} className="p-6 hover:bg-[#faf9f7] transition-colors space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                     <div>
                       <span className="text-xs font-mono bg-indigo-50 text-indigo-600 border border-indigo-100 px-2 py-0.5 rounded-md font-semibold">
@@ -279,7 +283,6 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  {/* Tri-dimensional metric indicator blocks */}
                   <div className="grid grid-cols-3 gap-3 bg-[#faf9f7] border border-[#e8e4dc]/60 rounded-xl p-3 text-center">
                     <div>
                       <div className="text-[10px] text-[#aaa] font-medium uppercase tracking-wider mb-0.5">Clarity</div>
