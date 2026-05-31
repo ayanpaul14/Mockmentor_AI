@@ -1,141 +1,31 @@
-// import { useState } from 'react';
-// import { useLocation, useNavigate } from 'react-router-dom';
-// import VoiceInput from '../components/VoiceInput';
-// import Footer from '../components/Footer';
-// import api from '../api/axios';
-
-// export default function Interview() {
-//   const { state }  = useLocation();
-//   const navigate   = useNavigate();
-//   const [answer, setAnswer]     = useState('');
-//   const [loading, setLoading]   = useState(false);
-//   const [error, setError]       = useState('');
-
-//   if (!state?.question) { navigate('/home'); return null; }
-
-//   const { question, role, level } = state;
-
-//   const handleSubmit = async () => {
-//     if (answer.trim().length < 10)
-//       return setError('Please write at least a sentence before submitting.');
-//     setError('');
-//     setLoading(true);
-//     try {
-//       const { data } = await api.post('/evaluate', {
-//         role, level,
-//         topic: question.topic,
-//         question: question.question,
-//         candidateAnswer: answer.trim(),
-//       });
-//       navigate('/feedback', {
-//         state: { result: data.result, question, answer: answer.trim() },
-//       });
-//     } catch (err) {
-//       setError(err.response?.data?.error || 'Evaluation failed. Please try again.');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="flex flex-col min-h-screen bg-[#fafaf7]">
-//       <div className="flex-1 page-wrap py-10 sm:py-14">
-//         <div className="max-w-2xl mx-auto">
-
-//           {/* Breadcrumb */}
-//           <div className="flex flex-wrap items-center gap-2 mb-8">
-//             <span className="tag">{role}</span>
-//             <span className="text-[#ddd] text-xs">·</span>
-//             <span className="tag">{level}</span>
-//             <span className="text-[#ddd] text-xs">·</span>
-//             <span className="tag">{question.topic}</span>
-//           </div>
-
-//           {/* Question card */}
-//           <div className="bg-white border border-[#e8e4dc] rounded-2xl overflow-hidden mb-5">
-//             <div className="bg-[#f5f2ec] border-b border-[#e8e4dc] px-5 sm:px-6 py-3 flex items-center gap-2">
-//               <div className="w-1.5 h-1.5 rounded-full bg-[#111]"></div>
-//               <span className="text-xs text-[#aaa] uppercase tracking-widest">Interview question</span>
-//             </div>
-//             <div className="px-5 sm:px-6 py-5">
-//               <p className="text-[#111] text-base sm:text-lg leading-relaxed font-medium">
-//                 {question.question}
-//               </p>
-//             </div>
-//           </div>
-
-//           {/* Answer card */}
-//           <div className="card mb-4">
-//             <div className="flex items-center justify-between mb-4">
-//               <label className="label mb-0">Your answer</label>
-//               <VoiceInput
-//                 onTranscript={(t) =>
-//                   setAnswer((prev) => (prev ? prev + ' ' + t : t))
-//                 }
-//               />
-//             </div>
-//             <textarea
-//               className="input resize-none"
-//               rows={window.innerWidth < 640 ? 6 : 8}
-//               placeholder="Type your answer here, or use voice input…"
-//               value={answer}
-//               onChange={(e) => setAnswer(e.target.value)}
-//             />
-//             <div className="flex justify-between items-center mt-2">
-//               <span className={`text-xs ${answer.length > 750 ? 'text-amber-500' : 'text-[#ccc]'}`}>
-//                 {answer.length}/800
-//               </span>
-//             </div>
-//           </div>
-
-//           {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-
-//           {/* Actions */}
-//           <div className="flex gap-3">
-//             <button onClick={() => navigate('/home')} className="btn-outline flex-1 py-3 text-sm">
-//               ← Back
-//             </button>
-//             <button
-//               onClick={handleSubmit}
-//               disabled={loading || answer.trim().length < 10}
-//               className="btn-primary flex-[2] py-3 text-sm"
-//             >
-//               {loading ? (
-//                 <span className="flex items-center justify-center gap-2">
-//                   <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-//                     <circle className="opacity-25" cx="12" cy="12" r="10"
-//                       stroke="currentColor" strokeWidth="4" />
-//                     <path className="opacity-75" fill="currentColor"
-//                       d="M4 12a8 8 0 018-8v8H4z" />
-//                   </svg>
-//                   AI is evaluating…
-//                 </span>
-//               ) : 'Submit for AI evaluation →'}
-//             </button>
-//           </div>
-
-//         </div>
-//       </div>
-//       <Footer />
-//     </div>
-//   );
-// }
-
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import VoiceInput from '../components/VoiceInput';
 import Footer from '../components/Footer';
 import api from '../api/axios';
 
 export default function Interview() {
-  const { state }  = useLocation();
-  const navigate   = useNavigate();
+  const { state }   = useLocation();
+  const navigate    = useNavigate();
   const [answer, setAnswer]     = useState('');
   const [loading, setLoading]   = useState(false);
   const [error, setError]       = useState('');
 
-  if (!state?.question) { navigate('/home'); return null; }
+  // ✅ FIXED: Route security guards now execute safely AFTER layout mounting finishes
+  useEffect(() => {
+    if (!state?.question) {
+      navigate('/home'); 
+    }
+  }, [state, navigate]);
+
+  // If there's no state yet, render a safe structural layout block while the redirect takes over
+  if (!state?.question) {
+    return (
+      <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center">
+        <p className="text-xs text-[#aaa] font-mono">REDIRECTING TO ENVIRONMENT MATRIX...</p>
+      </div>
+    );
+  }
 
   const { question, role, level } = state;
   const charPct = Math.min((answer.length / 800) * 100, 100);
