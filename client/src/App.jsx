@@ -1,114 +1,73 @@
-// import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-// import { AuthProvider, useAuth } from './context/AuthContext';
-// import Navbar from './components/Navbar';
-// import Landing from './pages/Landing';
-// import Login from './pages/Login';
-// import Register from './pages/Register';
-// import Home from './pages/Home';
-// import Interview from './pages/Interview';
-// import Feedback from './pages/Feedback';
-// import Dashboard from './pages/Dashboard';
-// import Help from './pages/Help';
-// import Privacy from './pages/Privacy';
-// import Terms from './pages/Terms';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
 
-// function PrivateRoute({ children }) {
-//   const { user } = useAuth();
-//   return user ? children : <Navigate to="/login" replace />;
-// }
-
-// function PublicRoute({ children }) {
-//   const { user } = useAuth();
-//   return user ? <Navigate to="/home" replace /> : children;
-// }
-
-// export default function App() {
-//   return (
-//     <AuthProvider>
-//       <BrowserRouter>
-//         <div className="min-h-screen flex flex-col">
-//           <Navbar />
-//           <Routes>
-//             {/* Public */}
-//             <Route path="/"        element={<Landing />} />
-//             <Route path="/help"    element={<Help />} />
-//             <Route path="/privacy" element={<Privacy />} />
-//             <Route path="/terms"   element={<Terms />} />
-
-//             {/* Auth */}
-//             <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
-//             <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-
-//             {/* Protected */}
-//             <Route path="/home"      element={<PrivateRoute><Home /></PrivateRoute>} />
-//             <Route path="/interview" element={<PrivateRoute><Interview /></PrivateRoute>} />
-//             <Route path="/feedback"  element={<PrivateRoute><Feedback /></PrivateRoute>} />
-//             <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-
-//             {/* 404 fallback */}
-//             <Route path="*" element={<Navigate to="/" replace />} />
-//           </Routes>
-//         </div>
-//       </BrowserRouter>
-//     </AuthProvider>
-//   );
-// }
-
-
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+// Import Layout Component Layers
 import Navbar from './components/Navbar';
-import Landing from './pages/Landing';
+
+// Import Dashboard View Components
+import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Home from './pages/Home';
+import Profile from './pages/Profile';
 import Interview from './pages/Interview';
 import Feedback from './pages/Feedback';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile'; // Imported the new profile page component
-import Help from './pages/Help';
-import Privacy from './pages/Privacy';
-import Terms from './pages/Terms';
-
-function PrivateRoute({ children }) {
-  const { user } = useAuth();
-  return user ? children : <Navigate to="/login" replace />;
-}
-
-function PublicRoute({ children }) {
-  const { user } = useAuth();
-  return user ? <Navigate to="/home" replace /> : children;
-}
+import CodingRound from './pages/CodingRound'; // ✅ Added the Monaco Workspace import node
 
 export default function App() {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <div className="min-h-screen flex flex-col">
+    <Router>
+      <AuthProvider>
+        <div className="min-h-screen flex flex-col bg-[#fafaf7] font-sans antialiased text-[#111]">
+          {/* Universal Header Navigation Layer */}
           <Navbar />
-          <Routes>
-            {/* Public */}
-            <Route path="/"        element={<Landing />} />
-            <Route path="/help"    element={<Help />} />
-            <Route path="/privacy" element={<Privacy />} />
-            <Route path="/terms"   element={<Terms />} />
 
-            {/* Auth */}
-            <Route path="/login"    element={<PublicRoute><Login /></PublicRoute>} />
-            <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          {/* Centralized View Application Routing Matrix */}
+          <main className="flex-1">
+            <Routes>
+              {/* Public Security Gates */}
+              <Route path="/login" element={<Login />} />
+              <Route path="/register" element={<Register />} />
 
-            {/* Protected */}
-            <Route path="/home"      element={<PrivateRoute><Home /></PrivateRoute>} />
-            <Route path="/interview" element={<PrivateRoute><Interview /></PrivateRoute>} />
-            <Route path="/feedback"  element={<PrivateRoute><Feedback /></PrivateRoute>} />
-            <Route path="/dashboard" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-            <Route path="/profile"   element={<PrivateRoute><Profile /></PrivateRoute>} /> {/* New Protected Profile Route */}
+              {/* Protected Application Feature Core */}
+              <Route path="/home" element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              } />
+              
+              <Route path="/profile" element={
+                <ProtectedRoute>
+                  <Profile />
+                </ProtectedRoute>
+              } />
 
-            {/* 404 fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
+              <Route path="/interview" element={
+                <ProtectedRoute>
+                  <Interview />
+                </ProtectedRoute>
+              } />
+
+              <Route path="/feedback" element={
+                <ProtectedRoute>
+                  <Feedback />
+                </ProtectedRoute>
+              } />
+
+              {/* ✅ NEW PROTECTED ROUTE: Coding Round Integrated IDE Sandbox */}
+              <Route path="/coding-round" element={
+                <ProtectedRoute>
+                  <CodingRound />
+                </ProtectedRoute>
+              } />
+
+              {/* Catch-All System Fallback Safeguard Routing Redirect */}
+              <Route path="*" element={<Navigate to="/home" replace />} />
+            </Routes>
+          </main>
         </div>
-      </BrowserRouter>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 }
