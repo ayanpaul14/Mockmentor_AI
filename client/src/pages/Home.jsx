@@ -4,11 +4,13 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import Footer from '../components/Footer';
 
+// Dynamic role selection map configurations array
 const ROLES = [
   { id: 'SDE',             icon: '💻', desc: 'Software Development Engineer', color: '#eef2ff', border: '#c7d2fe' },
-  { id: 'Data Analyst',    icon: '📊', desc: 'Data & Business Analytics',      color: '#f0fdf4', border: '#bbf7d0' },
+  { id: 'Data Analyst',     icon: '📊', desc: 'Data & Business Analytics',       color: '#f0fdf4', border: '#bbf7d0' },
   { id: 'Product Manager', icon: '🎯', desc: 'Product Strategy & Roadmap',     color: '#fff7ed', border: '#fed7aa' },
-  { id: 'DevOps',          icon: '⚙️',  desc: 'Infrastructure & CI/CD',         color: '#fdf4ff', border: '#e9d5ff' },
+  { id: 'DevOps',           icon: '⚙️',  desc: 'Infrastructure & CI/CD',         color: '#fdf4ff', border: '#e9d5ff' },
+  { id: 'Coding Round',     icon: '⚡',  desc: 'Data Structures, Algorithms & Logic', color: '#fffdf5', border: '#fef08a' },
 ];
 
 const LEVELS = [
@@ -29,6 +31,22 @@ export default function Home() {
     setError('');
     setLoading(true);
     try {
+      // 1. Intercept Coding Round tracks to bypass verbal page wrappers
+      if (role === 'Coding Round') {
+        navigate('/coding-round', { 
+          state: { 
+            role, 
+            level,
+            question: {
+              topic: 'Arrays',
+              question: 'Two Sum: Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.'
+            }
+          } 
+        });
+        return;
+      }
+
+      // 2. Fallback execution to default verbal question configurations
       const { data } = await api.get('/questions', { params: { role, level } });
       navigate('/interview', { state: { question: data, role, level } });
     } catch (err) {
@@ -152,7 +170,7 @@ export default function Home() {
             </div>
           )}
 
-          {/* CTA */}
+          {/* CTA Actions Block */}
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button onClick={handleStart} disabled={loading || !role || !level}
               className="flex-1 py-4 rounded-2xl text-sm font-bold text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
@@ -169,7 +187,7 @@ export default function Home() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                   </svg>
-                  Fetching question…
+                  Fetching environment...
                 </span>
               ) : '🚀 Start interview'}
             </button>
