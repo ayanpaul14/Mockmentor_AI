@@ -6,21 +6,21 @@ import Footer from '../components/Footer';
 const features = [
   { icon: '🧠', title: 'AI Scoring',        desc: 'Scored on clarity, depth, and keyword coverage — instant, honest feedback every time.' },
   { icon: '🎤', title: 'Voice Input',       desc: 'Speak your answer naturally. Browser-native speech recognition, zero extra cost.' },
-  { icon: '📈', title: 'Progress Tracking', desc: 'Your score trend and weakest topics tracked automatically on your dashboard.' },
-  { icon: '💡', title: 'Model Answers',     desc: 'See the ideal answer and exactly what you missed after every question.' },
+  { icon: '💻', title: 'Monaco Editor',     desc: 'Integrated full-scale browser code sandbox workspace with active language highlights.' }, // ✨ UPDATED
+  { icon: '⚡', title: 'Code Analytics',    desc: 'Automated complexity metrics, Big-O loop tracking, and ideal code snippet generation.' }, // ✨ UPDATED
 ];
 
-const roles = ['SDE', 'Data Analyst', 'Product Manager', 'DevOps'];
+const roles = ['SDE', 'Data Analyst', 'Product Manager', 'DevOps', 'Coding Round']; // ✨ UPDATED: Added to ticker strings
 
 const steps = [
-  { num: '01', icon: '🎯', title: 'Pick your role',      desc: 'Choose SDE, Analyst, PM, or DevOps at your experience level.' },
-  { num: '02', icon: '💬', title: 'Answer the question', desc: 'Type or speak your answer. A real interview question every time.' },
-  { num: '03', icon: '⚡', title: 'Get AI feedback',     desc: 'Instant scores on clarity, depth, and keywords with a model answer.' },
+  { num: '01', icon: '🎯', title: 'Pick your role',      desc: 'Choose SDE, Analyst, PM, DevOps, or a pure Coding Round sandbox.' }, // ✨ UPDATED
+  { num: '02', icon: '💻', title: 'Solve the challenge', desc: 'Type code parameters or speak conceptual responses directly to the platform.' }, // ✨ UPDATED
+  { num: '03', icon: '⚡', title: 'Get AI feedback',     desc: 'Instant diagnostics with complete, optimized side-by-side solution templates.' }, // ✨ UPDATED
 ];
 
 const stats = [
-  { value: '24+',  label: 'Questions',   icon: '📚' },
-  { value: '4',    label: 'Roles covered', icon: '👥' },
+  { value: '30+',  label: 'Challenges',   icon: '📚' }, // ✨ UPDATED
+  { value: '5',    label: 'Tracks covered', icon: '👥' }, // ✨ UPDATED
   { value: '3',    label: 'Score metrics', icon: '📊' },
   { value: '100%', label: 'Free to use',   icon: '🎁' },
 ];
@@ -34,7 +34,7 @@ const testimonials = [
 const anatomicalLabels = [
   { text: 'SDE (Cerebral Cortex)', x: 0, y: 5.5, z: 0 },
   { text: 'DevOps (Corpus Callosum)', x: -2, y: 2, z: 0 },
-  { text: 'Product Manager (Thalamus)', x: 1, y: 0.5, z: 0 },
+  { text: 'Coding Round (Synapses)', x: 1, y: 0.5, z: 0 }, // ✨ UPDATED
   { text: 'Data Analyst (Cerebellum)', x: -4, y: -2.5, z: 0 },
   { text: 'System Design (Brain Stem)', x: -1, y: -5, z: 0 },
   { text: 'Clarity Metric', x: 5.5, y: 3.5, z: 0 },
@@ -51,7 +51,6 @@ function NeonAnatomicalBrainBg() {
     const container = containerRef.current;
     if (!container) return;
 
-    // 1. Scene & Camera Setup
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
     camera.position.z = 26;
@@ -61,12 +60,10 @@ function NeonAnatomicalBrainBg() {
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    // Group for the brain itself (responds to mouse)
     const masterBrainGroup = new THREE.Group();
     masterBrainGroup.position.set(-1, -1, 0);
     scene.add(masterBrainGroup);
 
-    // Faint styling ensuring perfect foreground text contrast
     const faintBlueMaterial = new THREE.MeshBasicMaterial({
       color: 0x00bfff,
       wireframe: true,
@@ -81,7 +78,6 @@ function NeonAnatomicalBrainBg() {
       opacity: 0.07
     });
 
-    // 2. Structuring Deeper Layer Matrix Definitions
     const cortexGeom = new THREE.SphereGeometry(5.5, 28, 18, 0, Math.PI * 2, 0, Math.PI * 0.5);
     cortexGeom.rotateX(Math.PI / 2); 
     cortexGeom.scale(1.3, 0.9, 1); 
@@ -116,7 +112,6 @@ function NeonAnatomicalBrainBg() {
     stemMesh.position.set(-0.6, -3.8, 0);
     masterBrainGroup.add(stemMesh);
 
-    // 3. Document Pointer Vectors Setup
     const labelElements = [];
     const lineObjects = [];
 
@@ -166,70 +161,60 @@ function NeonAnatomicalBrainBg() {
       });
     });
 
-    // 4. ADDING SCREEN-WIDE MOVING DATA PARTICLES
     const spaceParticlesCount = 40;
     const spaceGeom = new THREE.BufferGeometry();
     const spacePositions = new Float32Array(spaceParticlesCount * 3);
     const spaceSpeeds = [];
 
     for (let i = 0; i < spaceParticlesCount; i++) {
-      // Scatter randomly across full visible viewport bounds
-      spacePositions[i * 3] = (Math.random() - 0.5) * 40;     // X axis
-      spacePositions[i * 3 + 1] = (Math.random() - 0.5) * 25; // Y axis
-      spacePositions[i * 3 + 2] = (Math.random() - 0.5) * 10; // Z axis (depth layers)
-      spaceSpeeds.push(0.015 + Math.random() * 0.03);        // Speed variations
+      spacePositions[i * 3] = (Math.random() - 0.5) * 40;     
+      spacePositions[i * 3 + 1] = (Math.random() - 0.5) * 25; 
+      spacePositions[i * 3 + 2] = (Math.random() - 0.5) * 10; 
+      spaceSpeeds.push(0.015 + Math.random() * 0.03);        
     }
 
     spaceGeom.setAttribute('position', new THREE.BufferAttribute(spacePositions, 3));
     const spaceMaterial = new THREE.PointsMaterial({
       size: 0.2,
-      color: 0x6366f1, // Cyan / indigo particle stream
+      color: 0x6366f1, 
       transparent: true,
       opacity: 0.25
     });
     const movingParticleField = new THREE.Points(spaceGeom, spaceMaterial);
-    scene.add(movingParticleField); // Added directly to main scene (doesn't rotate with mouse)
+    scene.add(movingParticleField); 
 
-    // 5. Capture User Mouse Coordinates to make objects movable
     const handleMouseMove = (event) => {
       mouseRef.current.targetX = (event.clientX / window.innerWidth) * 2 - 1;
       mouseRef.current.targetY = -(event.clientY / window.innerHeight) * 2 + 1;
     };
     window.addEventListener('mousemove', handleMouseMove);
 
-    // 6. Dynamic Render Pipeline Loop
     const clock = new THREE.Clock();
     const tempV = new THREE.Vector3();
 
     const animate = () => {
       const time = clock.getElapsedTime();
 
-      // Smooth mouse easing interpolation (LERP) for interactive control rotation
       mouseRef.current.x += (mouseRef.current.targetX - mouseRef.current.x) * 0.08;
       mouseRef.current.y += (mouseRef.current.targetY - mouseRef.current.y) * 0.08;
 
-      // Base passive floating movement mixed seamlessly with mouse position displacement vectors
       masterBrainGroup.rotation.y = (Math.sin(time * 0.15) * 0.04) + (mouseRef.current.x * 0.25);
       masterBrainGroup.rotation.x = (Math.cos(time * 0.1) * 0.02) + (mouseRef.current.y * 0.15);
 
-      // Micro undulation updates
       cortexMesh.scale.set(1 + Math.sin(time * 1.2) * 0.005, 0.9 + Math.sin(time * 1.2) * 0.005, 1);
       innerCortexMesh.rotation.z = Math.sin(time * 0.4) * 0.02;
 
-      // Animate the space particle field (Drift from left to right across screen layout)
       const spacePositionsArray = movingParticleField.geometry.attributes.position.array;
       for (let i = 0; i < spaceParticlesCount; i++) {
-        spacePositionsArray[i * 3] += spaceSpeeds[i]; // Move right along X
+        spacePositionsArray[i * 3] += spaceSpeeds[i]; 
         
-        // Horizontal wrap boundaries boundary check
         if (spacePositionsArray[i * 3] > 22) {
-          spacePositionsArray[i * 3] = -22; // Teleport back to far left side
-          spacePositionsArray[i * 3 + 1] = (Math.random() - 0.5) * 25; // Give it a new random Y row
+          spacePositionsArray[i * 3] = -22; 
+          spacePositionsArray[i * 3 + 1] = (Math.random() - 0.5) * 25; 
         }
       }
       movingParticleField.geometry.attributes.position.needsUpdate = true;
 
-      // Projection mapping loops update overlay positions perfectly
       lineObjects.forEach((lineObj, i) => {
         tempV.set(lineObj.labelXOffset, lineObj.labelYOffset, 0);
         tempV.applyMatrix4(masterBrainGroup.matrixWorld);
@@ -307,10 +292,8 @@ export default function Landing() {
       {/* HERO SECTION */}
       <section className="relative min-h-[92vh] flex flex-col items-center justify-center px-4 text-center overflow-hidden">
         
-        {/* Render Live Interactive 3D Anatomical Specification Environment */}
         <NeonAnatomicalBrainBg />
 
-        {/* Restored Purple & Indigo Background Ambient Glows */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none z-0">
           <div className="absolute -top-40 -right-40 w-96 h-96 rounded-full opacity-20 blur-3xl animate-pulse"
             style={{ background: 'radial-gradient(circle, #6366f1, transparent)', animationDuration: '4s' }} />
@@ -318,14 +301,12 @@ export default function Landing() {
             style={{ background: 'radial-gradient(circle, #8b5cf6, transparent)', animationDuration: '6s', animationDelay: '2s' }} />
         </div>
 
-        {/* Faint system alignment map overlay */}
         <div className="absolute inset-0 opacity-[0.02] pointer-events-none z-0"
           style={{
             backgroundImage: 'linear-gradient(#111 1px, transparent 1px), linear-gradient(90deg, #111 1px, transparent 1px)',
             backgroundSize: '60px 60px',
           }} />
 
-        {/* Content Container Layout */}
         <div className="relative z-10 max-w-4xl mx-auto">
           <div className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] shadow-sm text-[#666] text-xs px-4 py-2 rounded-full mb-8">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block"></span>
@@ -378,7 +359,6 @@ export default function Landing() {
           </div>
         </div>
 
-        {/* Scroll indicator */}
         <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 animate-bounce opacity-40 z-10">
           <span className="text-xs text-[#aaa]">scroll</span>
           <svg width="12" height="16" viewBox="0 0 12 16" fill="none">
@@ -387,7 +367,7 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* APP PREVIEW */}
+      {/* ✨ UPDATED: APP PREVIEW BLOCK (Now mirrors your Monaco IDE view) */}
       <section className="page-wrap mb-20 sm:mb-28 relative z-10">
         <div className="relative">
           <div className="absolute inset-0 -m-4 rounded-3xl opacity-20 blur-2xl pointer-events-none"
@@ -402,51 +382,51 @@ export default function Landing() {
                 <div className="w-3 h-3 rounded-full bg-[#28c840]"></div>
               </div>
               <div className="flex-1 bg-white border border-[#e0ddd8] rounded-lg px-4 py-1.5 text-xs text-[#bbb] text-center">
-                🔒 mockmentor.ai/interview
+                🔒 mockmentor.ai/coding-round
               </div>
               <div className="w-16 h-5 bg-[#e8e4dc] rounded animate-pulse opacity-50"></div>
             </div>
 
-            <div className="p-5 sm:p-8">
-              <div className="flex flex-wrap gap-2 mb-6">
-                {['SDE', 'Fresher', 'Data Structures'].map((t, i) => (
-                  <span key={t} className="text-xs px-3 py-1.5 rounded-full font-medium"
-                    style={i === 0 ? { background: '#111', color: '#fff' } : { background: '#f5f2ec', color: '#666' }}>
-                    {t}
-                  </span>
-                ))}
-              </div>
-
-              <div className="border-l-4 border-[#6366f1] rounded-r-2xl px-5 py-5 mb-6"
-                style={{ background: 'linear-gradient(to right, #f5f2ec, #faf9f7)' }}>
-                <p className="text-xs text-[#6366f1] uppercase tracking-widest mb-2 font-medium">Interview Question</p>
-                <p className="text-[#111] text-sm sm:text-base font-medium leading-relaxed">
-                  Explain how a hash map works and when would you use one over an array?
-                </p>
-              </div>
-
-              <div className="border border-[#e8e4dc] rounded-2xl p-4 sm:p-5 mb-5 bg-[#faf9f7]">
-                <div className="flex justify-between items-center mb-4">
-                  <p className="text-xs text-[#aaa] uppercase tracking-widest font-medium">Your Answer</p>
-                  <div className="flex items-center gap-1.5 bg-white border border-[#e0ddd8] rounded-full px-3 py-1.5 shadow-sm">
-                    <span className="text-xs">🎤</span>
-                    <span className="text-xs text-[#666] font-medium">Voice</span>
-                  </div>
+            {/* Main Interactive IDE Split Grid Representation */}
+            <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-[#e8e4dc]">
+              
+              {/* Problem Left Side */}
+              <div className="p-5 sm:p-6 space-y-4">
+                <div className="flex gap-2">
+                  <span className="text-[10px] uppercase font-bold tracking-wider bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-0.5 rounded-full">Medium</span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider bg-[#f5f2ec] text-[#666] border border-[#e8e4dc] px-2.5 py-0.5 rounded-full">Arrays</span>
                 </div>
-                <div className="space-y-2.5">
-                  <div className="h-3 bg-[#e8e4dc] rounded-full w-3/4 animate-pulse"></div>
-                  <div className="h-3 bg-[#e8e4dc] rounded-full w-full animate-pulse" style={{ animationDelay: '0.1s' }}></div>
-                  <div className="h-3 bg-[#e8e4dc] rounded-full w-5/6 animate-pulse" style={{ animationDelay: '0.2s' }}></div>
-                  <div className="h-3 bg-[#e8e4dc] rounded-full w-2/3 animate-pulse" style={{ animationDelay: '0.3s' }}></div>
+                <div>
+                  <h3 className="font-semibold text-base text-[#111] mb-1">Two Sum</h3>
+                  <p className="text-xs text-[#666] leading-relaxed">
+                    Given an array of integers <code className="font-mono bg-[#f5f2ec] px-1 rounded text-indigo-600">nums</code> and an integer <code className="font-mono bg-[#f5f2ec] px-1 rounded text-indigo-600">target</code>, return indices of the two numbers such that they add up to target.
+                  </p>
+                </div>
+                <div className="bg-[#faf9f7] border border-[#e8e4dc] rounded-xl p-3 font-mono text-[10px] text-[#555]">
+                  <p className="font-sans font-bold text-[#111] mb-0.5">Input:</p> nums = [2,7,11,15], target = 9
+                  <p className="font-sans font-bold text-[#111] mt-1.5 mb-0.5">Output:</p> [0,1]
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div className="bg-white border border-[#e0ddd8] rounded-xl py-3 text-center text-xs text-[#888] font-medium">← Back</div>
-                <div className="col-span-2 bg-[#111] rounded-xl py-3 text-center text-xs text-white font-medium shadow-lg">
-                  Submit for AI evaluation →
+              {/* Code Editor Right Side */}
+              <div className="bg-[#1e1e1e] p-5 font-mono text-xs flex flex-col justify-between text-neutral-400 min-h-[220px]">
+                <div className="space-y-1">
+                  <p className="text-indigo-400"><span className="text-neutral-600 select-none mr-3">1</span>var twoSum = function(nums, target) &#123;</p>
+                  <p><span className="text-neutral-600 select-none mr-3">2</span>  const map = new Map();</p>
+                  <p className="text-amber-400"><span className="text-neutral-600 select-none mr-3">3</span>  for (let i = 0; i &lt; nums.length; i++) &#123;</p>
+                  <p><span className="text-neutral-600 select-none mr-3">4</span>    const complement = target - nums[i];</p>
+                  <p className="text-emerald-400"><span className="text-neutral-600 select-none mr-3">5</span>    if (map.has(complement)) return [map.get(complement), i];</p>
+                  <p><span className="text-neutral-600 select-none mr-3">6</span>    map.set(nums[i], i);</p>
+                  <p><span className="text-neutral-600 select-none mr-3">7</span>  &#125;</p>
+                  <p className="text-indigo-400"><span className="text-neutral-600 select-none mr-3">8</span>&#125;; <span className="animate-pulse text-white">█</span></p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2 mt-4 font-sans">
+                  <div className="bg-neutral-800 text-neutral-300 text-center py-2 rounded-lg text-[11px] font-medium">▶ Run Test Cases</div>
+                  <div className="bg-indigo-600 text-white text-center py-2 rounded-lg text-[11px] font-medium shadow-md">⚡ Submit Code</div>
                 </div>
               </div>
+
             </div>
           </div>
         </div>

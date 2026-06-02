@@ -7,13 +7,14 @@ import ProtectedRoute from './components/ProtectedRoute';
 import Navbar from './components/Navbar';
 
 // Import Dashboard View Components
+import Landing from './pages/Landing'; // Dynamic 3D Neon Brain Landing Page
 import Home from './pages/Home';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Profile from './pages/Profile';
 import Interview from './pages/Interview';
 import Feedback from './pages/Feedback';
-import CodingRound from './pages/CodingRound'; // ✅ Added the Monaco Workspace import node
+import CodingRound from './pages/CodingRound'; // Monaco Code Editor Workspace
 
 export default function App() {
   return (
@@ -26,7 +27,10 @@ export default function App() {
           {/* Centralized View Application Routing Matrix */}
           <main className="flex-1">
             <Routes>
-              {/* Public Security Gates */}
+              {/* 🏠 Public Facing Component (Accessible to Everyone) */}
+              <Route path="/" element={<Landing />} />
+
+              {/* Public Security Access Gates */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
 
@@ -55,7 +59,7 @@ export default function App() {
                 </ProtectedRoute>
               } />
 
-              {/* ✅ NEW PROTECTED ROUTE: Coding Round Integrated IDE Sandbox */}
+              {/* Protected Coding Round Integrated IDE Sandbox */}
               <Route path="/coding-round" element={
                 <ProtectedRoute>
                   <CodingRound />
@@ -63,7 +67,7 @@ export default function App() {
               } />
 
               {/* Catch-All System Fallback Safeguard Routing Redirect */}
-              <Route path="*" element={<Navigate to="/home" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
         </div>
