@@ -7,7 +7,7 @@ import Session from '../models/Session.js';
 import User from '../models/User.js'; 
 import { protect } from '../middleware/auth.js';
 
-const router = report = express.Router();
+const router = express.Router();
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 const getPreviousDay = (dateStr) => {
