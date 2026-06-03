@@ -1,11 +1,11 @@
 import express from 'express';
 import dotenv from 'dotenv';
-dotenv.config();
-
 import Groq from 'groq-sdk';
 import Session from '../models/Session.js';
 import User from '../models/User.js'; 
 import { protect } from '../middleware/auth.js';
+
+dotenv.config();
 
 const router = express.Router();
 const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
@@ -75,11 +75,13 @@ router.post('/', protect, async (req, res) => {
   }
 
   try {
+    const questionText = typeof question === 'object' ? question.question : question;
+
     const completion = await groq.chat.completions.create({
       model: 'llama-3.3-70b-versatile',
       messages: [
         { role: 'system', content: activeSystemPrompt },
-        { role: 'user',   content: buildPrompt(role, level, topic, typeof question === 'object' ? question.question : question, trimmed) },
+        { role: 'user',   content: buildPrompt(role, level, topic, questionText, trimmed) },
       ],
       temperature: 0.2,
       max_tokens: 1024,
@@ -87,54 +89,72 @@ router.post('/', protect, async (req, res) => {
 
     const raw = completion.choices[0]?.message?.content || '';
 
+    // 🧼 IRONCLAD PARSING OVERRIDE: Isolates text inside the literal curly braces { ... }
     let result;
     try {
-      const cleaned = raw.replace(/```json|```/g, '').trim();
-      result = JSON.parse(cleaned);
+      const jsonMatch = raw.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        result = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('No clean brackets located');
+      }
     } catch {
-      console.error('JSON parse failed. Raw:', raw);
+      console.error('JSON parse failed. Raw AI Response content:', raw);
       return res.status(500).json({ error: 'AI returned invalid format. Try again.' });
     }
 
-    await Session.create({
+    // ✅ FIXED SCHEMA KEY-PAIR MAPPING (Aligned to Session.js)
+    const newSession = await Session.create({
       userId: req.user._id,
-      role, level, topic, question: typeof question === 'object' ? question.question : question,
+      role,
+      level,
+      topic,
+      question: questionText,
       candidateAnswer: trimmed,
-      scores:       result.scores,
-      missedPoints: result.missed_points,
-      strengths:    result.strengths,
-      modelAnswer:  result.model_answer,
-      verdict:      result.one_line_verdict,
+      scores: {
+        clarity: Number(result.scores?.clarity || 0),
+        depth: Number(result.scores?.depth || 0),
+        keywords: Number(result.scores?.keywords || 0),
+        overall: Number(result.scores?.overall || 0)
+      },
+      strengths: result.strengths || [],
+      missed_points: result.missed_points || [],
+      model_answer: result.model_answer || ""
     });
 
     // ── Streak calculation ──
     const today = new Date().toISOString().split('T')[0]; 
-    const user  = await User.findById(req.user._id);
+    const user = await User.findById(req.user._id);
+    
+    // Track flag before mutating database row context
+    const isNewDay = user.lastSessionDate !== today;
 
     if (user.lastSessionDate === today) {
-      // Already practiced today
+      // Already practiced today, keep streak frozen
     } else if (user.lastSessionDate === getPreviousDay(today)) {
-      user.currentStreak  += 1;
-      user.longestStreak   = Math.max(user.longestStreak, user.currentStreak);
+      user.currentStreak += 1;
+      user.longestStreak = Math.max(user.longestStreak, user.currentStreak);
     } else {
-      user.currentStreak  = 1;
-      user.longestStreak  = Math.max(user.longestStreak, 1);
+      user.currentStreak = 1;
+      user.longestStreak = Math.max(user.longestStreak, 1);
     }
 
     user.lastSessionDate = today;
     await user.save();
 
+    // Send uniform payload response mapping matching frontend logic exactly
     res.json({
       success: true,
-      result,
+      result: newSession,
       streak: {
         current: user.currentStreak,
         longest: user.longestStreak,
-        isNewDay: user.lastSessionDate !== today,
+        isNewDay: isNewDay,
       }
     });
+
   } catch (err) {
-    console.error('Evaluation error:', err.message);
+    console.error('Evaluation system routing error chain caught:', err.message);
     res.status(500).json({ error: 'Evaluation failed. Please try again.' });
   }
 });
