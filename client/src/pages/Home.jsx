@@ -31,20 +31,28 @@ export default function Home() {
     setError('');
     setLoading(true);
     try {
-      // 1. Fetch a dynamic tailored question from your backend based on active selections
+      // 1. Fire API call request to pull questions matching your selection fields
       const { data } = await api.get('/questions', { params: { role, level } });
       
-      // 2. Route dynamically depending on track context
+      // 🛡️ ACCELERATOR SAFEGUARD: If backend has no data seeded for Coding Round, inject local fallback object
+      let finalQuestionData = data;
+      if (!data && role === 'Coding Round') {
+        finalQuestionData = {
+          topic: 'Arrays',
+          question: 'Two Sum:\n\nGiven an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nExample:\nInput: nums = [2,7,11,15], target = 9\nOutput: [0,1]'
+        };
+      } else if (!data) {
+        // Halt and display error message banner only if a traditional verbal track comes back completely blank
+        return setError('No questions found for this role and level in database.');
+      }
+
+      // 2. Clear out parameters and pipe state objects right through the router streams
       if (role === 'Coding Round') {
         navigate('/coding-round', { 
-          state: { 
-            role, 
-            level,
-            question: data // Passes down the unique fetched database/LLM problem payload
-          } 
+          state: { role, level, question: finalQuestionData } 
         });
       } else {
-        navigate('/interview', { state: { question: data, role, level } });
+        navigate('/interview', { state: { question: finalQuestionData, role, level } });
       }
     } catch (err) {
       setError(err.response?.data?.error || 'Could not fetch a question. Try again.');
