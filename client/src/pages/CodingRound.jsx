@@ -31,7 +31,7 @@ export default function CodingRound() {
     setError('');
     setEvalResult(null); 
     try {
-      // Send the real dynamic question variables to your backend
+      // Send the real dynamic question variables to your backend to save the session document
       const { data } = await api.post('/evaluate', {
         role: role || 'Coding Round',
         level: level || 'Fresher',
@@ -178,7 +178,6 @@ export default function CodingRound() {
           {/* AI Code Auditor Execution Panel */}
           <div className="bg-white border border-[#e8e4dc] rounded-2xl p-5 shadow-sm space-y-4">
             <div className="border-b border-[#f0ede6] pb-2">
-              {/* 💸 FIXED: "Groq" branding has been cleanly omitted */}
               <h4 className="font-semibold text-sm">AI Analytics Diagnostic Node</h4>
             </div>
 
@@ -200,6 +199,14 @@ export default function CodingRound() {
                     <p className="text-[10px] text-[#aaa] font-medium uppercase tracking-wider">Code Quality</p>
                   </div>
                 </div>
+
+                {/* ✅ CORE SYNC FIX: Instant redirection button to clear your single-page app cache states */}
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+                >
+                  📊 Save & View Updated Analytics Dashboard
+                </button>
 
                 <div className="bg-[#faf9f7] border border-[#e8e4dc] rounded-xl p-3 space-y-1.5">
                   <p className="text-xs font-bold text-[#111]">Key Accomplishments:</p>
