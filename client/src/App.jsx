@@ -1,6 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import AuthProvider from './context/AuthContext'; // ✅ FIXED: Removed curly braces for the default export
 import ProtectedRoute from './components/ProtectedRoute';
 
 // Import Layout Component Layers
