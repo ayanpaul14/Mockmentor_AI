@@ -1,87 +1,3 @@
-// import { useState } from 'react';
-// import { Link, useNavigate } from 'react-router-dom';
-// import { useAuth } from '../context/AuthContext';
-// import Footer from '../components/Footer';
-
-// export default function Login() {
-//   const { login } = useAuth();
-//   const navigate = useNavigate();
-//   const [form, setForm]     = useState({ email: '', password: '' });
-//   const [error, setError]   = useState('');
-//   const [loading, setLoading] = useState(false);
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-//     setError('');
-//     setLoading(true);
-//     try {
-//       await login(form.email, form.password);
-//       navigate('/home');
-//     } catch (err) {
-//       setError(err.response?.data?.error || 'Login failed. Try again.');
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   return (
-//     <div className="flex flex-col min-h-screen bg-[#fafaf7]">
-//       <div className="flex-1 flex items-center justify-center px-4 py-16">
-//         <div className="w-full max-w-sm">
-
-//           {/* Logo */}
-//           <div className="text-center mb-8">
-//             <div className="w-10 h-10 bg-[#111] rounded-xl flex items-center justify-center mx-auto mb-4">
-//               <span className="text-white text-sm font-semibold">M</span>
-//             </div>
-//             <h1 className="text-2xl font-medium text-[#111] tracking-tight">Welcome back</h1>
-//             <p className="text-[#aaa] text-sm mt-1">Log in to continue practising</p>
-//           </div>
-
-//           {/* Card */}
-//           <div className="card shadow-sm">
-//             {error && (
-//               <div className="bg-red-50 border border-red-100 text-red-500 rounded-lg px-4 py-3 mb-5 text-sm">
-//                 {error}
-//               </div>
-//             )}
-
-//             <form onSubmit={handleSubmit} className="space-y-4">
-//               <div>
-//                 <label className="label">Email</label>
-//                 <input type="email" className="input" placeholder="you@example.com"
-//                   value={form.email}
-//                   onChange={(e) => setForm({ ...form, email: e.target.value })}
-//                   required />
-//               </div>
-//               <div>
-//                 <label className="label">Password</label>
-//                 <input type="password" className="input" placeholder="••••••••"
-//                   value={form.password}
-//                   onChange={(e) => setForm({ ...form, password: e.target.value })}
-//                   required />
-//               </div>
-//               <button type="submit" disabled={loading} className="btn-primary w-full py-3 mt-1">
-//                 {loading ? 'Logging in…' : 'Login'}
-//               </button>
-//             </form>
-
-//             <p className="text-center text-xs text-[#aaa] mt-5">
-//               No account?{' '}
-//               <Link to="/register" className="text-[#111] hover:underline font-medium">
-//                 Sign up free
-//               </Link>
-//             </p>
-//           </div>
-//         </div>
-//       </div>
-//       <Footer />
-//     </div>
-//   );
-// }
-
-
-
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -99,10 +15,21 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await login(form.email, form.password);
+      // 1. Fire your backend API request through your custom AuthContext hook layer
+      const response = await login(form.email, form.password);
+      
+      // 2. CRITICAL SYNC FIX: Ensure the raw token string is explicitly saved to browser memory
+      // If your custom auth hook returns the raw payload object, extract the token explicitly.
+      if (response?.token) {
+        localStorage.setItem('token', response.token);
+      } else if (response?.data?.token) {
+        localStorage.setItem('token', response.data.token);
+      }
+      
+      // 3. Now that the token is safely written, your ProtectedRoute will pass it cleanly!
       navigate('/home');
     } catch (err) {
-      setError(err.response?.data?.error || 'Login failed. Try again.');
+      setError(err.response?.data?.error || 'Login failed. Check your credentials and try again.');
     } finally {
       setLoading(false);
     }
