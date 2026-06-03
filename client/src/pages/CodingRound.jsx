@@ -1,47 +1,42 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Editor from '@monaco-editor/react';
 import api from '../api/axios';
 
 export default function CodingRound() {
   const navigate = useNavigate();
-  const [code, setCode] = useState(`/**
- * @param {number[]} nums
- * @param {number} target
- * @return {number[]}
- */
-var twoSum = function(nums, target) {
-  const map = new Map();
-  for (let i = 0; i < nums.length; i++) {
-    const complement = target - nums[i];
-    if (map.has(complement)) {
-      return [map.get(complement), i];
-    }
-    map.set(nums[i], i);
-  }
-};`);
+  const location = useLocation();
 
+  // Extract the dynamic question object passed from Home.jsx
+  const { role, level, question } = location.state || {};
+  
+  // Safely extract the topic and problem text string whether it arrives as an object or raw string
+  const targetQuestion = typeof question === 'object' ? question?.question : question;
+  const targetTopic = question?.topic || 'Algorithms';
+
+  // State initialization with starter placeholder templates
+  const [code, setCode] = useState(`/**\n * Write your optimized solution here...\n */\nfunction solution() {\n  \n}`);
   const [loading, setLoading] = useState(false);
   const [evalResult, setEvalResult] = useState(null);
   const [error, setError] = useState('');
 
   // Local tracking configuration mock records
   const testCases = [
-    { inp: '[2,7,11,15], 9', exp: '[0,1]', got: '[0,1]', pass: true },
-    { inp: '[3,2,4], 6',     exp: '[1,2]', got: '[1,2]', pass: true },
-    { inp: '[3,3], 6',       exp: '[0,1]', got: 'undefined', pass: false },
+    { inp: 'Sample Case 1', exp: 'Match', got: 'Match', pass: true },
+    { inp: 'Sample Case 2', exp: 'Match', got: 'Match', pass: true },
   ];
 
   const handleAIEvaluation = async () => {
     setLoading(true);
     setError('');
-    setEvalResult(null); // Clear previous reports during new submission cycles
+    setEvalResult(null); 
     try {
+      // Send the real dynamic question variables to your backend
       const { data } = await api.post('/evaluate', {
-        role: 'Coding Round',
-        level: 'Fresher',
-        topic: 'Arrays', 
-        question: 'Two Sum: Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
+        role: role || 'Coding Round',
+        level: level || 'Fresher',
+        topic: targetTopic, 
+        question: targetQuestion || 'Problem statement fallback metadata details...',
         candidateAnswer: code.trim(),
       });
       
@@ -66,20 +61,17 @@ var twoSum = function(nums, target) {
           <div className="flex items-center gap-2">
             <div className="w-6 h-6 bg-[#111] rounded-lg flex items-center justify-center font-bold text-white text-xs">M</div>
             <span className="text-sm font-semibold tracking-tight">MockMentor</span>
-            <span className="text-xs text-[#aaa]">/ Coding Round Matrix</span>
+            <span className="text-xs text-[#aaa]">/ {role || 'Coding Round'} Dashboard</span>
           </div>
           <div className="flex items-center gap-3">
             <button 
               onClick={() => navigate('/home')}
               className="bg-white hover:bg-[#f5f2ec] text-xs font-semibold px-3 py-1.5 border border-[#e8e4dc] text-[#555] rounded-xl transition-all"
             >
-              ← Dashboard
+              ← Leave Session
             </button>
-            <div className="bg-[#fef2f2] border border-[#fecaca] rounded-xl px-3 py-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#dc2626]">
-              ⏱️ 24:31
-            </div>
-            <div className="bg-white border border-[#e8e4dc] text-xs px-3 py-1.5 rounded-xl font-medium shadow-sm">
-              JavaScript
+            <div className="bg-white border border-[#e8e4dc] text-xs px-3 py-1.5 rounded-xl font-medium shadow-sm uppercase tracking-wider text-indigo-600">
+              {level || 'Assessment'} Mode
             </div>
           </div>
         </div>
@@ -91,29 +83,24 @@ var twoSum = function(nums, target) {
           <div className="bg-white border border-[#e8e4dc] rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between">
             <div>
               <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold text-lg tracking-tight">Two Sum</h3>
+                <h3 className="font-bold text-lg tracking-tight">Problem Statement</h3>
                 <div className="flex gap-2">
-                  <span className="text-[10px] uppercase font-bold tracking-wider bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full">Medium</span>
-                  <span className="text-[10px] uppercase font-bold tracking-wider bg-[#faf9f7] text-[#555] border border-[#e8e4dc] px-2.5 py-1 rounded-full">Arrays</span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider bg-amber-50 text-amber-700 border border-amber-200 px-2.5 py-1 rounded-full">Dynamic</span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider bg-[#faf9f7] text-[#555] border border-[#e8e4dc] px-2.5 py-1 rounded-full">{targetTopic}</span>
                 </div>
               </div>
-              <p className="text-sm text-[#444] leading-relaxed">
-                Given an array of integers <code className="font-mono bg-[#f1f5f9] px-1 py-0.5 rounded text-xs text-indigo-600">nums</code> and an integer <code className="font-mono bg-[#f1f5f9] px-1 py-0.5 rounded text-xs text-indigo-600">target</code>, return indices of the two numbers such that they add up to target.
+              
+              <p className="text-sm text-[#444] leading-relaxed whitespace-pre-line bg-[#faf9f7] border border-[#e8e4dc] rounded-xl p-4 font-mono">
+                {targetQuestion || "No interview challenge parameters were retrieved. Please return to your selector matrix page to re-roll."}
               </p>
             </div>
 
-            <div className="bg-[#faf9f7] border border-[#e8e4dc] rounded-xl p-4 font-mono text-xs text-[#555] space-y-1">
-              <p className="font-sans font-semibold text-xs text-[#111] mb-1">Example 1:</p>
-              <p><span className="text-[#aaa]">Input:</span> nums = [2,7,11,15], target = 9</p>
-              <p><span className="text-[#aaa]">Output:</span> [0,1]</p>
-              <p className="text-[#aaa] italic">// Explanation: nums[0] + nums[1] == 9, we return [0, 1].</p>
-            </div>
-
-            <div className="bg-[#faf9f7] border border-[#e8e4dc] rounded-xl p-4 space-y-1">
-              <p className="font-semibold text-xs text-[#111]">Constraints:</p>
-              <ul className="list-disc pl-5 text-xs font-mono text-[#666] space-y-0.5">
-                <li>2 ≤ nums.length ≤ 10⁴</li>
-                <li>-10⁹ ≤ nums[i] ≤ 10⁹</li>
+            <div className="bg-[#fcfbf9] border border-[#e8e4dc] rounded-xl p-4 space-y-1">
+              <p className="font-semibold text-xs text-[#111]">Instructions:</p>
+              <ul className="list-disc pl-5 text-xs text-[#666] space-y-1">
+                <li>Write a functional, performant code block inside the editor layout workspace window.</li>
+                <li>Ensure edge cases, boundary structures, and complex computational loops are handled carefully.</li>
+                <li>Click the audit action block below to initiate an automated deep LLM code quality inspection pipeline pass.</li>
               </ul>
             </div>
           </div>
@@ -151,31 +138,26 @@ var twoSum = function(nums, target) {
           </div>
         </div>
 
-        {/* BOTTOM METRICS PANEL: Assertion Logs and Groq Payload Analysis Output */}
+        {/* BOTTOM METRICS PANEL: Assertion Logs and AI Payload Analysis Output */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           
           {/* Local Unit Test Suite Block */}
           <div className="bg-white border border-[#e8e4dc] rounded-2xl p-5 shadow-sm space-y-4 flex flex-col justify-between">
             <div className="flex justify-between items-center border-b border-[#f0ede6] pb-2">
               <h4 className="font-semibold text-sm">Automated Test Cases</h4>
-              <div className="flex gap-2 text-[10px] font-bold">
-                <span className="bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md">2 PASSED</span>
-                <span className="bg-red-50 text-red-700 border border-red-200 px-2 py-0.5 rounded-md">1 FAILED</span>
-              </div>
+              <span className="bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-bold px-2 py-0.5 rounded-md">AI GRADING ENABLED</span>
             </div>
 
             <div className="divide-y divide-[#f0ede6]">
               {testCases.map((test, index) => (
                 <div key={index} className="py-2.5 flex items-start gap-3">
-                  <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 border ${
-                    test.pass ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'
-                  }`}>
-                    {test.pass ? '✓' : '✗'}
+                  <div className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold flex-shrink-0 border bg-emerald-50 border-emerald-200 text-emerald-700">
+                    ✓
                   </div>
                   <div className="font-mono text-xs space-y-0.5 truncate">
-                    <p className="text-[#666] truncate"><span className="text-[#aaa] font-sans">Input:</span> {test.inp}</p>
-                    <p className={test.pass ? 'text-emerald-600' : 'text-red-600'}>
-                      <span className="text-[#aaa] font-sans">Output:</span> {test.got} {!test.pass && `(Expected: ${test.exp})`}
+                    <p className="text-[#666] truncate"><span className="text-[#aaa] font-sans">Sandbox environment:</span> {test.inp}</p>
+                    <p className="text-emerald-600">
+                      <span className="text-[#aaa] font-sans">Status:</span> Pipeline Operational
                     </p>
                   </div>
                 </div>
@@ -183,15 +165,12 @@ var twoSum = function(nums, target) {
             </div>
 
             <div className="flex gap-3 pt-2">
-              <button className="flex-1 py-3 border border-[#e0ddd8] bg-white text-[#555] font-semibold text-xs rounded-xl hover:border-[#bbb] transition-all">
-                ▶ Run Test Assertions
-              </button>
               <button 
                 onClick={handleAIEvaluation}
                 disabled={loading}
                 className="flex-1 py-3 bg-[#111] hover:bg-[#222] text-white font-semibold text-xs rounded-xl transition-all shadow-md disabled:opacity-50"
               >
-                {loading ? '⚡ Requesting Llama Audit...' : '⚡ Submit for AI Eval'}
+                {loading ? '⚡ Requesting AI Audit...' : '⚡ Submit for AI Eval'}
               </button>
             </div>
           </div>
@@ -199,7 +178,8 @@ var twoSum = function(nums, target) {
           {/* AI Code Auditor Execution Panel */}
           <div className="bg-white border border-[#e8e4dc] rounded-2xl p-5 shadow-sm space-y-4">
             <div className="border-b border-[#f0ede6] pb-2">
-              <h4 className="font-semibold text-sm">Groq AI Analytics Diagnostic Node</h4>
+              {/* 💸 FIXED: "Groq" branding has been cleanly omitted */}
+              <h4 className="font-semibold text-sm">AI Analytics Diagnostic Node</h4>
             </div>
 
             {error && <p className="text-xs text-red-500 font-mono">⚠️ {error}</p>}
@@ -236,7 +216,7 @@ var twoSum = function(nums, target) {
                 </div>
 
                 <div className="bg-[#1e1e1e] rounded-xl p-3 font-mono text-[11px] text-emerald-400 overflow-x-auto whitespace-pre max-h-[180px]">
-                  <p className="font-sans font-bold text-xs text-white mb-1">Optimized Solution Model Reference:</p>
+                  <p className="font-sans font-bold text-white mb-1">Optimized Solution Model Reference:</p>
                   {evalResult.model_answer || '// No solution reference available.'}
                 </div>
               </div>

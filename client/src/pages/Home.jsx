@@ -31,24 +31,21 @@ export default function Home() {
     setError('');
     setLoading(true);
     try {
-      // 1. Intercept Coding Round track selections to directly route into the Monaco Code Sandbox view
+      // 1. Fetch a dynamic tailored question from your backend based on active selections
+      const { data } = await api.get('/questions', { params: { role, level } });
+      
+      // 2. Route dynamically depending on track context
       if (role === 'Coding Round') {
         navigate('/coding-round', { 
           state: { 
             role, 
             level,
-            question: {
-              topic: 'Arrays',
-              question: 'Two Sum: Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.'
-            }
+            question: data // Passes down the unique fetched database/LLM problem payload
           } 
         });
-        return;
+      } else {
+        navigate('/interview', { state: { question: data, role, level } });
       }
-
-      // 2. Fallback execution route loop for traditional verbal configuration arrays
-      const { data } = await api.get('/questions', { params: { role, level } });
-      navigate('/interview', { state: { question: data, role, level } });
     } catch (err) {
       setError(err.response?.data?.error || 'Could not fetch a question. Try again.');
     } finally {

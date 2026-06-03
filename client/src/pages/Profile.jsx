@@ -1,312 +1,163 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import axios from '../api/axios';
+import api from '../api/axios';
+import Footer from '../components/Footer';
 
 export default function Profile() {
-  const { user } = useAuth(); // Access global logged-in user object dynamically
-  const [activeTab, setActiveTab] = useState('overview');
-  const [profileData, setProfileData] = useState(null);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  
+  // Dynamic metrics state hooks
+  const [stats, setStats] = useState({
+    totalSessions: 0,
+    averageScore: 0,
+    codingRoundsCount: 0,
+    verbalRoundsCount: 0
+  });
+  const [recentSessions, setRecentSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchProfileDetails = async () => {
+    const fetchUserStats = async () => {
       try {
         setLoading(true);
+        // 📥 Fetch live records directly out of your MongoDB collection
+        const { data } = await api.get('/sessions');
         
-        // 1. Grab the current user's session token from localStorage
-        const token = localStorage.getItem('token'); 
+        if (data && Array.isArray(data)) {
+          const total = data.length;
+          let totalScoreSum = 0;
+          let codingCount = 0;
+          let verbalCount = 0;
 
-        // 2. Point to the correct /api/auth/profile route and send authorization headers
-        const response = await axios.get(`/api/auth/profile/${user?._id || 'me'}`, {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-        
-        setProfileData(response.data);
-      } catch (error) {
-        console.error("Error retrieving custom profile records:", error);
-        // Fallback placeholder data if backend api is failing or unreachable
-        setProfileData({
-          name: user?.name || 'Candidate Account',
-          college: user?.college || 'Associated Institution',
-          specialization: user?.specialization || 'B.Tech CSE',
-          location: user?.location || 'India',
-          streakCount: user?.streakCount || 0,
-          joinedDate: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' }) : 'Recent Member',
-          overallScore: 0,
-          topicScores: [
-            { topic: 'Data Structures & Algorithms', score: 0, color: 'bg-cyan-500' },
-            { topic: 'System Design', score: 0, color: 'bg-indigo-500' },
-            { topic: 'Core Engineering Tracks', score: 0, color: 'bg-emerald-500' },
-          ],
-          badges: [],
-          sessions: []
-        });
+          data.forEach(session => {
+            // ✅ MATCHES BACKEND SCHEMA: Extracting straight from document root level properties
+            const clarity = session.scores?.clarity || 0;
+            const depth = session.scores?.depth || 0;
+            const quality = session.scores?.keywords || 0;
+            
+            const avgSessionScore = (clarity + depth + quality) / 3;
+            totalScoreSum += avgSessionScore;
+
+            if (session.role === 'Coding Round') {
+              codingCount++;
+            } else {
+              verbalCount++;
+            }
+          });
+
+          setStats({
+            totalSessions: total,
+            averageScore: total > 0 ? (totalScoreSum / total).toFixed(1) : 0,
+            codingRoundsCount: codingCount,
+            verbalRoundsCount: verbalCount
+          });
+          
+          // Render your 5 newest sessions directly on your tracking table feed
+          setRecentSessions(data.slice(0, 5));
+        }
+      } catch (err) {
+        setError(err.response?.data?.error || 'Failed to sync performance history profiles.');
       } finally {
         setLoading(false);
       }
     };
 
-    if (user) {
-      fetchProfileDetails();
-    }
-  }, [user]);
-
-  // Generate matrix cells for the LeetCode activity dashboard layout
-  const generateCalendarDays = () => {
-    const days = [];
-    const states = ['none', 'low', 'medium', 'high'];
-    const currentStreak = profileData?.streakCount || 0;
-    
-    for (let i = 1; i <= 90; i++) {
-      let intensity = 'none';
-      if (currentStreak > 0 && i > (90 - currentStreak)) {
-        intensity = states[Math.floor(Math.random() * 2) + 2]; // high or medium activity
-      } else {
-        intensity = Math.random() > 0.75 ? states[Math.floor(Math.random() * 3)] : 'none';
-      }
-      days.push({ day: i, intensity });
-    }
-    return days;
-  };
-
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center font-sans">
-        <div className="text-center space-y-3">
-          <div className="w-8 h-8 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
-          <p className="text-xs text-[#777] font-mono tracking-wider">LOADING PROFILE STACK...</p>
-        </div>
-      </div>
-    );
-  }
-
-  const calendarDays = generateCalendarDays();
+    fetchUserStats();
+  }, []);
 
   return (
-    <div className="min-h-screen bg-[#fafaf7] text-[#111] p-4 sm:p-8 font-sans selection:bg-indigo-500 selection:text-white">
-      <div className="max-w-6xl mx-auto space-y-8">
+    <div className="min-h-screen p-4 sm:p-6 font-sans text-[#111]" style={{ background: '#fafaf7' }}>
+      <div className="max-w-4xl mx-auto space-y-6 py-8">
         
-        {/* Navigation Breadcrumb */}
-        <div className="flex justify-between items-center border-b border-[#e8e4dc] pb-4">
-          <div className="flex items-center gap-2 text-xs text-[#777] font-medium">
-            <Link to="/" className="hover:text-indigo-600 transition-colors">Home</Link>
-            <span>/</span>
-            <span className="text-[#111]">Dashboard Profile</span>
+        {/* Profile Card Header */}
+        <div className="bg-white border border-[#e8e4dc] rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 bg-[#111] rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md">
+              {user?.name ? user.name.charAt(0).toUpperCase() : 'M'}
+            </div>
+            <div>
+              <h2 className="text-xl font-bold tracking-tight">{user?.name || 'Developer Candidate'}</h2>
+              <p className="text-xs text-[#aaa] font-mono">{user?.email || 'authenticated@mockmentor.ai'}</p>
+            </div>
           </div>
-          <Link to="/interview" className="bg-[#111] hover:bg-[#222] text-white font-medium px-4 py-2 rounded-xl text-xs transition-all shadow-sm">
-            Launch Mock Interview →
-          </Link>
+          <button 
+            onClick={() => navigate('/home')}
+            className="self-start sm:self-center bg-white hover:bg-[#f5f2ec] text-xs font-semibold px-4 py-2 border border-[#e8e4dc] text-[#555] rounded-xl transition-all"
+          >
+            ← Back to Dashboard
+          </button>
         </div>
 
-        {/* Dynamic User Card Header */}
-        <div className="bg-white border border-[#e8e4dc] rounded-2xl p-6 sm:p-8 shadow-sm flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-          <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-white text-2xl font-semibold bg-gradient-to-br from-[#6366f1] to-[#8b5cf6] shadow-md shadow-indigo-500/10">
-              {profileData?.name ? profileData.name[0] : 'U'}
-            </div>
-            <div className="space-y-1">
-              <h2 className="text-2xl font-semibold tracking-tight">{profileData?.name}</h2>
-              <p className="text-sm text-[#555] font-medium">{profileData?.specialization} • {profileData?.college}</p>
-              <p className="text-xs text-[#aaa]">{profileData?.location} • Member since {profileData?.joinedDate}</p>
-            </div>
+        {/* 📋 DYNAMIC METRICS CORE PANEL */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white border border-[#e8e4dc] p-4 rounded-xl shadow-sm text-center">
+            <p className="text-2xl font-bold text-[#111]">{loading ? '—' : stats.totalSessions}</p>
+            <p className="text-[10px] text-[#aaa] font-semibold uppercase tracking-wider mt-1">Total Rounds</p>
           </div>
+          <div className="bg-white border border-[#e8e4dc] p-4 rounded-xl shadow-sm text-center">
+            <p className="text-2xl font-bold text-indigo-600">{loading ? '—' : `${stats.averageScore}/10`}</p>
+            <p className="text-[10px] text-[#aaa] font-semibold uppercase tracking-wider mt-1">Average Rating</p>
+          </div>
+          <div className="bg-white border border-[#e8e4dc] p-4 rounded-xl shadow-sm text-center">
+            <p className="text-2xl font-bold text-amber-500">{loading ? '—' : stats.codingRoundsCount}</p>
+            <p className="text-[10px] text-[#aaa] font-semibold uppercase tracking-wider mt-1">Coding Arenas</p>
+          </div>
+          <div className="bg-white border border-[#e8e4dc] p-4 rounded-xl shadow-sm text-center">
+            <p className="text-2xl font-bold text-emerald-600">{loading ? '—' : stats.verbalRoundsCount}</p>
+            <p className="text-[10px] text-[#aaa] font-semibold uppercase tracking-wider mt-1">Verbal Tracks</p>
+          </div>
+        </div>
+
+        {/* History Table Log Area */}
+        <div className="bg-white border border-[#e8e4dc] rounded-2xl p-5 shadow-sm space-y-4">
+          <h3 className="font-bold text-sm border-b border-[#f0ede6] pb-2">Recent Performance Log</h3>
           
-          {/* Quick Stats Metrics Block */}
-          <div className="flex gap-4 w-full sm:w-auto border-t sm:border-t-0 border-[#f0ede6] pt-4 sm:pt-0">
-            <div className="flex-1 sm:flex-initial bg-[#faf9f7] border border-[#e8e4dc] rounded-xl px-4 py-3 text-center min-w-[100px]">
-              <div className="text-xs text-[#aaa] font-medium uppercase tracking-wider mb-0.5">Streak</div>
-              <div className="text-xl font-bold text-orange-500 flex items-center justify-center gap-1">
-                🔥 {profileData?.streakCount} <span className="text-xs text-[#aaa] font-normal">days</span>
-              </div>
+          {error && <p className="text-xs text-red-500 font-mono">⚠️ {error}</p>}
+          
+          {loading ? (
+            <p className="text-xs text-[#aaa] font-mono py-4 text-center">Synchronizing performance index logs...</p>
+          ) : recentSessions.length === 0 ? (
+            <div className="text-center py-8 text-[#aaa] border border-dashed border-[#e8e4dc] rounded-xl space-y-1">
+              <p className="text-sm">No historical assessment sessions found.</p>
+              <p className="text-xs">Complete an interview track to populate your global matrix charts!</p>
             </div>
-            <div className="flex-1 sm:flex-initial bg-[#faf9f7] border border-[#e8e4dc] rounded-xl px-4 py-3 text-center min-w-[100px]">
-              <div className="text-xs text-[#aaa] font-medium uppercase tracking-wider mb-0.5">Avg Score</div>
-              <div className="text-xl font-bold text-indigo-600">
-                {profileData?.overallScore}<span className="text-xs text-[#aaa] font-normal">%</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Dashboard Profile Tab Selection Switches */}
-        <div className="flex border-b border-[#e8e4dc] gap-6 text-sm font-medium">
-          {['overview', 'badges', 'history'].map((tab) => (
-            <button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className={`pb-3 capitalize transition-all border-b-2 -mb-0.5 ${
-                activeTab === tab 
-                  ? 'border-indigo-600 text-[#111]' 
-                  : 'border-transparent text-[#aaa] hover:text-[#555]'
-              }`}
-            >
-              {tab}
-            </button>
-          ))}
-        </div>
-
-        {/* TAB TARGET CONTENT ROUTER PANEL */}
-        {activeTab === 'overview' && (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            
-            <div className="lg:col-span-2 space-y-8">
-              {/* LeetCode Style Matrix Consistency Block */}
-              <div className="bg-white border border-[#e8e4dc] rounded-2xl p-6 shadow-sm space-y-4">
-                <div className="flex justify-between items-center">
-                  <div>
-                    <h3 className="font-semibold text-base">Interview Consistency Grid</h3>
-                    <p className="text-xs text-[#aaa]">Tracks daily question evaluations and response iterations</p>
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs font-medium text-[#777]">
-                    <span>Less</span>
-                    <div className="w-2.5 h-2.5 rounded bg-[#f1f5f9]" />
-                    <div className="w-2.5 h-2.5 rounded bg-indigo-100" />
-                    <div className="w-2.5 h-2.5 rounded bg-indigo-300" />
-                    <div className="w-2.5 h-2.5 rounded bg-indigo-600" />
-                    <span>More</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-flow-col grid-rows-5 gap-1.5 pt-2 overflow-x-auto select-none">
-                  {calendarDays.map((cell) => {
-                    let bgClass = 'bg-[#f1f5f9]';
-                    if (cell.intensity === 'low') bgClass = 'bg-indigo-100';
-                    if (cell.intensity === 'medium') bgClass = 'bg-indigo-300';
-                    if (cell.intensity === 'high') bgClass = 'bg-indigo-600';
-                    return (
-                      <div 
-                        key={cell.day} 
-                        className={`w-3.5 h-3.5 rounded-[3px] transition-colors ${bgClass}`}
-                        title={`Day ${cell.day}: Evaluated Metrics`}
-                      />
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Topic Evaluation Matrix Metrics breakdown */}
-              <div className="bg-white border border-[#e8e4dc] rounded-2xl p-6 shadow-sm space-y-5">
-                <div>
-                  <h3 className="font-semibold text-base">Technical Subject Knowledge Breakdown</h3>
-                  <p className="text-xs text-[#aaa]">Average competency scoring metrics derived from interactive interview logs</p>
-                </div>
-                
-                <div className="space-y-4">
-                  {profileData?.topicScores?.map((item) => (
-                    <div key={item.topic} className="space-y-1.5">
-                      <div className="flex justify-between text-xs font-medium">
-                        <span className="text-[#555]">{item.topic}</span>
-                        <span className="text-[#111]">{item.score}% Competency</span>
-                      </div>
-                      <div className="w-full bg-[#f1f5f9] h-2 rounded-full overflow-hidden">
-                        <div className={`h-full rounded-full ${item.color || 'bg-indigo-500'}`} style={{ width: `${item.score}%` }} />
-                      </div>
-                    </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left font-mono text-xs text-[#444] border-collapse">
+                <thead>
+                  <tr className="bg-[#faf9f7] text-[#888] border-b border-[#e8e4dc]">
+                    <th className="p-3 font-semibold">Track Role</th>
+                    <th className="p-3 font-semibold">Complexity</th>
+                    <th className="p-3 font-semibold">Topic Cluster</th>
+                    <th className="p-3 font-semibold">Timestamp</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-[#f0ede6]">
+                  {recentSessions.map((session) => (
+                    <tr key={session._id} className="hover:bg-[#faf9f7]/50 transition-colors">
+                      <td className="p-3 font-bold text-[#111]">{session.role}</td>
+                      <td className="p-3">
+                        <span className="px-2 py-0.5 rounded bg-neutral-100 text-[#555] font-sans text-[10px] font-medium">
+                          {session.level}
+                        </span>
+                      </td>
+                      <td className="p-3 truncate max-w-[180px]">{session.topic || 'General'}</td>
+                      <td className="p-3 text-[#aaa] font-sans text-[11px]">
+                        {new Date(session.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
+                      </td>
+                    </tr>
                   ))}
-                </div>
-              </div>
+                </tbody>
+              </table>
             </div>
-
-            {/* Right Sticky Sidebar Section */}
-            <div className="space-y-8">
-              <div className="bg-white border border-[#e8e4dc] rounded-2xl p-6 shadow-sm space-y-4">
-                <div className="flex justify-between items-center">
-                  <h3 className="font-semibold text-base">Earned Milestones</h3>
-                  <button onClick={() => setActiveTab('badges')} className="text-xs text-indigo-600 font-medium hover:underline">
-                    View All
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-2 gap-3">
-                  {profileData?.badges?.slice(0, 4).map((badge) => (
-                    <div key={badge.id} className="border border-[#f0ede6] rounded-xl p-3 text-center bg-[#faf9f7] hover:border-[#6366f1]/20 transition-all cursor-default">
-                      <div className="text-2xl mb-1">{badge.icon}</div>
-                      <div className="text-xs font-semibold truncate text-[#111]">{badge.name}</div>
-                      <div className="text-[10px] text-[#aaa] mt-0.5">{badge.date}</div>
-                    </div>
-                  ))}
-                  {(!profileData?.badges || profileData.badges.length === 0) && (
-                    <p className="text-xs text-[#aaa] italic col-span-2 text-center py-4">No milestones yet</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-          </div>
-        )}
-
-        {activeTab === 'badges' && (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {profileData?.badges?.map((badge) => (
-              <div key={badge.id} className="bg-white border border-[#e8e4dc] rounded-2xl p-5 flex gap-4 items-start shadow-sm">
-                <div className="w-14 h-14 rounded-xl bg-[#faf9f7] border border-[#e8e4dc] flex items-center justify-center text-3xl flex-shrink-0 shadow-sm">
-                  {badge.icon}
-                </div>
-                <div className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <h4 className="font-semibold text-sm text-[#111]">{badge.name}</h4>
-                    <span className="text-[10px] font-mono bg-[#f5f2ec] text-[#777] px-2 py-0.5 rounded-md">{badge.date}</span>
-                  </div>
-                  <p className="text-xs text-[#666] leading-relaxed">{badge.desc}</p>
-                </div>
-              </div>
-            ))}
-            {(!profileData?.badges || profileData.badges.length === 0) && (
-              <p className="text-xs text-[#aaa] italic p-4">No milestone certificates unlocked yet.</p>
-            )}
-          </div>
-        )}
-
-        {activeTab === 'history' && (
-          <div className="bg-white border border-[#e8e4dc] rounded-2xl overflow-hidden shadow-sm">
-            <div className="p-6 border-b border-[#e8e4dc]">
-              <h3 className="font-semibold text-base">Historical Evaluation Transcripts</h3>
-              <p className="text-xs text-[#aaa]">Deep performance metrics tracking across historic session blocks</p>
-            </div>
-            
-            <div className="divide-y divide-[#f0ede6]">
-              {profileData?.sessions?.map((session) => (
-                <div key={session.id || session._id} className="p-6 hover:bg-[#faf9f7] transition-colors space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <span className="text-xs font-mono bg-indigo-50 text-indigo-600 border border-indigo-100 px-2 py-0.5 rounded-md font-semibold">
-                        {session.role}
-                      </span>
-                      <h4 className="font-semibold text-sm text-[#111] mt-1.5">{session.topic}</h4>
-                    </div>
-                    <div className="text-left sm:text-right">
-                      <div className="text-sm font-bold text-indigo-600">Score: {session.score}%</div>
-                      <div className="text-[11px] text-[#aaa]">{session.date}</div>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-3 gap-3 bg-[#faf9f7] border border-[#e8e4dc]/60 rounded-xl p-3 text-center">
-                    <div>
-                      <div className="text-[10px] text-[#aaa] font-medium uppercase tracking-wider mb-0.5">Clarity</div>
-                      <div className="text-xs font-semibold text-[#333]">{session.clarity}%</div>
-                    </div>
-                    <div className="border-x border-[#e8e4dc]/80">
-                      <div className="text-[10px] text-[#aaa] font-medium uppercase tracking-wider mb-0.5">Depth</div>
-                      <div className="text-xs font-semibold text-[#333]">{session.depth}%</div>
-                    </div>
-                    <div>
-                      <div className="text-[10px] text-[#aaa] font-medium uppercase tracking-wider mb-0.5">Keywords</div>
-                      <div className="text-xs font-semibold text-[#333]">{session.keywords}%</div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {(!profileData?.sessions || profileData.sessions.length === 0) && (
-                <p className="text-xs text-[#aaa] italic p-6">No interview sessions logged yet. Launch a session to populate metrics.</p>
-              )}
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
       </div>
+      <Footer />
     </div>
   );
 }
