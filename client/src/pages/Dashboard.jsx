@@ -23,13 +23,51 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function Dashboard() {
   const navigate  = useNavigate();
-  const [data, setData]       = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [stats, setStats] = useState({ total: 0, avgScore: '0.0', weakestTopic: 'None yet' });
   const [loading, setLoading] = useState(true);
-  const [error, setError]     = useState('');
+  const [error, setError] = useState('');
 
   useEffect(() => {
     api.get('/sessions')
-      .then(({ data }) => setData(data))
+      .then(({ data }) => {
+        if (data && Array.isArray(data)) {
+          setSessions(data);
+          
+          // 📊 Calculate stats from raw session array dynamically to prevent crashes
+          const total = data.length;
+          let totalScore = 0;
+          const topicScores = {};
+
+          data.forEach(s => {
+            const score = s.scores?.overall || 0;
+            totalScore += score;
+
+            if (s.topic) {
+              if (!topicScores[s.topic]) topicScores[s.topic] = { sum: 0, count: 0 };
+              topicScores[s.topic].sum += score;
+              topicScores[s.topic].count += 1;
+            }
+          });
+
+          // Find weakest topic
+          let weakest = 'None yet';
+          let lowestAvg = 11;
+          Object.keys(topicScores).forEach(topic => {
+            const avg = topicScores[topic].sum / topicScores[topic].count;
+            if (avg < lowestAvg) {
+              lowestAvg = avg;
+              weakest = topic;
+            }
+          });
+
+          setStats({
+            total,
+            avgScore: total > 0 ? (totalScore / total).toFixed(1) : '0.0',
+            weakestTopic: weakest
+          });
+        }
+      })
       .catch(() => setError('Could not load sessions.'))
       .finally(() => setLoading(false));
   }, []);
@@ -42,7 +80,7 @@ export default function Dashboard() {
           <div className="w-12 h-12 rounded-2xl bg-[#111] flex items-center justify-center mx-auto mb-4 animate-pulse">
             <span className="text-white font-bold">M</span>
           </div>
-          <p className="text-[#aaa] text-sm">Loading your dashboard…</p>
+          <p className="text-[#aaa] text-sm">Loading your analytics dashboard…</p>
         </div>
       </div>
       <Footer />
@@ -59,7 +97,6 @@ export default function Dashboard() {
     </div>
   );
 
-  const { sessions, stats } = data;
   const chartData = [...sessions].reverse().slice(-20)
     .map((s, i) => ({ name: `Q${i + 1}`, score: s.scores?.overall ?? 0 }));
 
@@ -70,10 +107,7 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(160deg, #fafaf7 0%, #f0ede6 100%)' }}>
-
-      {/* Rainbow top bar */}
       <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899, #f59e0b)' }} />
-
       <div className="flex-1 page-wrap py-10 sm:py-14">
 
         {/* Header */}
@@ -97,12 +131,9 @@ export default function Dashboard() {
 
         {/* Stat cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-
-          {/* Sessions card */}
           <div className="bg-white border-2 border-[#e8e4dc] rounded-2xl p-5 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
             <div className="flex items-center justify-between mb-4">
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl"
-                style={{ background: '#eef2ff' }}>🎯</div>
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl" style={{ background: '#eef2ff' }}>🎯</div>
               <span className="text-xs text-[#bbb] bg-[#f5f2ec] px-2 py-1 rounded-full">total</span>
             </div>
             <p className="text-4xl font-bold text-[#111] tracking-tight mb-1" style={{ letterSpacing: '-0.03em' }}>
@@ -111,25 +142,18 @@ export default function Dashboard() {
             <p className="text-xs text-[#aaa] uppercase tracking-widest font-medium">Sessions completed</p>
           </div>
 
-          {/* Avg score card */}
           <div className="border-2 rounded-2xl p-5 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
             style={{ background: avgBg, borderColor: avgBorder }}>
             <div className="flex items-center justify-between mb-4">
               <div className="w-10 h-10 rounded-2xl flex items-center justify-center text-xl bg-white">⭐</div>
-              <span className="text-xs font-medium px-2 py-1 rounded-full"
-                style={{ background: 'rgba(255,255,255,0.7)', color: avgColor }}>
-                /10
-              </span>
+              <span className="text-xs font-medium px-2 py-1 rounded-full" style={{ background: 'rgba(255,255,255,0.7)', color: avgColor }}>/10</span>
             </div>
             <p className="text-4xl font-bold tracking-tight mb-1" style={{ color: avgColor, letterSpacing: '-0.03em' }}>
               {stats.avgScore}
             </p>
-            <p className="text-xs uppercase tracking-widest font-medium" style={{ color: avgColor, opacity: 0.7 }}>
-              Average score
-            </p>
+            <p className="text-xs uppercase tracking-widest font-medium" style={{ color: avgColor, opacity: 0.7 }}>Average score</p>
           </div>
 
-          {/* Weakest topic card */}
           <div className="bg-white border-2 border-[#e8e4dc] rounded-2xl p-5 sm:p-6 hover:shadow-lg transition-all duration-200 hover:-translate-y-1"
             style={{ background: '#fff7ed', borderColor: '#fed7aa' }}>
             <div className="flex items-center justify-between mb-4">
@@ -139,7 +163,6 @@ export default function Dashboard() {
             <p className="text-xl font-bold text-[#111] truncate mb-1">{stats.weakestTopic}</p>
             <p className="text-xs text-amber-600/70 uppercase tracking-widest font-medium">Weakest topic</p>
           </div>
-
         </div>
 
         {/* Chart */}
@@ -159,7 +182,7 @@ export default function Dashboard() {
               <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -25, bottom: 5 }}>
                 <defs>
                   <linearGradient id="scoreGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%"  stopColor="#6366f1" stopOpacity={0.2}/>
+                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.2}/>
                     <stop offset="95%" stopColor="#6366f1" stopOpacity={0}/>
                   </linearGradient>
                 </defs>
@@ -191,32 +214,24 @@ export default function Dashboard() {
         {/* Recent sessions */}
         {sessions.length > 0 && (
           <div className="bg-white border-2 border-[#e8e4dc] rounded-2xl overflow-hidden shadow-sm">
-
-            {/* Table header */}
             <div className="px-5 sm:px-6 py-4 border-b-2 border-[#f0ede6] flex items-center justify-between"
               style={{ background: 'linear-gradient(to right, #faf9f7, #fff)' }}>
               <div className="flex items-center gap-2">
                 <span className="text-sm">📋</span>
                 <h2 className="font-bold text-[#111] text-sm">Recent sessions</h2>
               </div>
-              <span className="text-xs text-[#bbb] bg-[#f5f2ec] px-3 py-1 rounded-full">
-                {sessions.length} total
-              </span>
+              <span className="text-xs text-[#bbb] bg-[#f5f2ec] px-3 py-1 rounded-full">{sessions.length} total</span>
             </div>
 
             {sessions.slice(0, 10).map((s, i) => {
-              const score = s.scores?.overall;
+              const score = s.scores?.overall || 0;
               const scoreColor  = score >= 7 ? '#059669' : score >= 5 ? '#d97706' : '#dc2626';
               const scoreBg     = score >= 7 ? '#f0fdf4' : score >= 5 ? '#fffbeb' : '#fef2f2';
               const scoreBorder = score >= 7 ? '#bbf7d0' : score >= 5 ? '#fde68a' : '#fecaca';
               const scoreLabel  = score >= 7 ? 'Good' : score >= 5 ? 'Fair' : 'Needs work';
               return (
-                <div key={s._id}
-                  className={`flex items-center justify-between px-5 sm:px-6 py-4 hover:bg-[#faf9f7] transition-colors ${
-                    i !== 0 ? 'border-t border-[#f5f2ec]' : ''
-                  }`}>
+                <div key={s._id} className={`flex items-center justify-between px-5 sm:px-6 py-4 hover:bg-[#faf9f7] transition-colors ${i !== 0 ? 'border-t border-[#f5f2ec]' : ''}`}>
                   <div className="flex items-center gap-3 sm:gap-4 flex-1 min-w-0 mr-3">
-                    {/* Score badge */}
                     <div className="w-10 h-10 rounded-2xl flex-shrink-0 flex flex-col items-center justify-center border-2 font-bold text-sm"
                       style={{ background: scoreBg, color: scoreColor, borderColor: scoreBorder }}>
                       {score}
@@ -243,7 +258,6 @@ export default function Dashboard() {
             })}
           </div>
         )}
-
       </div>
       <Footer />
     </div>
