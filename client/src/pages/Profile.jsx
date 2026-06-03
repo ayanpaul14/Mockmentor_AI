@@ -33,7 +33,7 @@ export default function Profile() {
           let verbalCount = 0;
 
           data.forEach(session => {
-            // ✅ MATCHES BACKEND SCHEMA: Extracting straight from document root level properties
+            // ✅ SCHEMA SYNCHRONIZATION: Parsing directly from root database model properties
             const clarity = session.scores?.clarity || 0;
             const depth = session.scores?.depth || 0;
             const quality = session.scores?.keywords || 0;
@@ -55,7 +55,7 @@ export default function Profile() {
             verbalRoundsCount: verbalCount
           });
           
-          // Render your 5 newest sessions directly on your tracking table feed
+          // Store the 5 newest data elements for table feed rendering
           setRecentSessions(data.slice(0, 5));
         }
       } catch (err) {
@@ -91,7 +91,7 @@ export default function Profile() {
           </button>
         </div>
 
-        {/* 📋 DYNAMIC METRICS CORE PANEL */}
+        {/* Dynamic Metrics Panel Grid Layout */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white border border-[#e8e4dc] p-4 rounded-xl shadow-sm text-center">
             <p className="text-2xl font-bold text-[#111]">{loading ? '—' : stats.totalSessions}</p>

@@ -20,6 +20,7 @@ export default function App() {
     <Router>
       <AuthProvider>
         <div className="min-h-screen flex flex-col bg-[#fafaf7] font-sans antialiased text-[#111]">
+          {/* Universal Header Navigation Layer */}
           <Navbar />
 
           <main className="flex-1">
@@ -27,20 +28,20 @@ export default function App() {
               {/* Public Facing Component */}
               <Route path="/" element={<Landing />} />
 
-              {/* Access Gates */}
+              {/* Public Access Portals */}
               <Route path="/login" element={<Login />} />
               <Route path="/register" element={<Register />} />
 
-              {/* 🔓 OPEN CORE: Guard wrappers completely removed! */}
+              {/* 🔓 Unlocked Core Panel Matrix */}
               <Route path="/home" element={<Home />} />
               <Route path="/profile" element={<Profile />} />
               <Route path="/interview" element={<Interview />} />
               <Route path="/feedback" element={<Feedback />} />
 
-              {/* 🔓 OPEN IDE: Directly accessible now */}
+              {/* 🔓 Unlocked Monaco IDE Workspace Playground */}
               <Route path="/coding-round" element={<CodingRound />} />
 
-              {/* Fallback Safeguard */}
+              {/* Catch-All System Fallback Safeguard Routing Redirect */}
               <Route path="/*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
