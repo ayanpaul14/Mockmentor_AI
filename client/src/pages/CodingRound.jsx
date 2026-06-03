@@ -31,13 +31,21 @@ export default function CodingRound() {
     setError('');
     setEvalResult(null); 
     try {
-      // Send the real dynamic question variables to your backend to save the session document
+      // 🔑 Grab your login token from localStorage to authenticate the request
+      const token = localStorage.getItem('token');
+
+      // Send the real dynamic question variables along with your Auth Header configuration
       const { data } = await api.post('/evaluate', {
         role: role || 'Coding Round',
         level: level || 'Fresher',
         topic: targetTopic, 
         question: targetQuestion || 'Problem statement fallback metadata details...',
         candidateAnswer: code.trim(),
+      }, {
+        // ✅ SECURE ATTACHMENT: Forces the backend middleware to identify you and save metrics
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
       
       if (data.success && data.result) {
@@ -200,7 +208,7 @@ export default function CodingRound() {
                   </div>
                 </div>
 
-                {/* ✅ CORE SYNC FIX: Instant redirection button to clear your single-page app cache states */}
+                {/* Instant redirection button to clear your single-page app cache states */}
                 <button
                   onClick={() => navigate('/dashboard')}
                   className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"

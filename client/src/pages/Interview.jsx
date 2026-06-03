@@ -1,164 +1,173 @@
-import { useState, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import VoiceInput from '../components/VoiceInput';
-import Footer from '../components/Footer';
+import React, { useState } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
+import Footer from '../components/Footer';
 
 export default function Interview() {
-  const { state }   = useLocation();
-  const navigate    = useNavigate();
-  const [answer, setAnswer]     = useState('');
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState('');
+  const navigate = useNavigate();
+  const location = useLocation();
 
-  // ✅ FIXED: Route security guards now execute safely AFTER layout mounting finishes
-  useEffect(() => {
-    if (!state?.question) {
-      navigate('/home'); 
-    }
-  }, [state, navigate]);
+  // Extract navigation states passed from Home.jsx
+  const { role, level, question } = location.state || {};
+  
+  // Safely extract the topic and question string values
+  const targetQuestion = typeof question === 'object' ? question?.question : question;
+  const targetTopic = question?.topic || 'General';
 
-  // If there's no state yet, render a safe structural layout block while the redirect takes over
-  if (!state?.question) {
-    return (
-      <div className="min-h-screen bg-[#fafaf7] flex items-center justify-center">
-        <p className="text-xs text-[#aaa] font-mono">REDIRECTING TO ENVIRONMENT MATRIX...</p>
-      </div>
-    );
-  }
+  const [currentAnswer, setCurrentAnswer] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [evalResult, setEvalResult] = useState(null);
+  const [error, setError] = useState('');
 
-  const { question, role, level } = state;
-  const charPct = Math.min((answer.length / 800) * 100, 100);
-
-  const handleSubmit = async () => {
-    if (answer.trim().length < 10)
-      return setError('Please write at least a sentence before submitting.');
-    setError('');
+  const handleSubmitAnswer = async () => {
+    if (!currentAnswer.trim()) return setError('Please type or dictate an answer before submitting.');
+    
     setLoading(true);
+    setError('');
+    setEvalResult(null);
+
     try {
+      // 🔑 Grab your login token from localStorage to authenticate the request
+      const token = localStorage.getItem('token');
+
+      // Send your text answer to the backend evaluation route
       const { data } = await api.post('/evaluate', {
-        role, level,
-        topic: question.topic,
-        question: question.question,
-        candidateAnswer: answer.trim(),
+        role: role || 'SDE',
+        level: level || 'Fresher',
+        topic: targetTopic,
+        question: targetQuestion,
+        candidateAnswer: currentAnswer.trim()
+      }, {
+        // ✅ SECURE ATTACHMENT: Forces the backend middleware to identify you and save metrics
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       });
-      navigate('/feedback', {
-        state: { result: data.result, question, answer: answer.trim() },
-      });
+
+      if (data.success && data.result) {
+        setEvalResult(data.result);
+      } else {
+        setError('Evaluation response payload format unrecognized.');
+      }
     } catch (err) {
-      setError(err.response?.data?.error || 'Evaluation failed. Please try again.');
+      setError(err.response?.data?.error || 'Failed to submit answer for AI analysis.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen" style={{ background: '#fafaf7' }}>
+    <div className="min-h-screen p-4 sm:p-6 font-sans text-[#111]" style={{ background: '#fafaf7' }}>
+      <div className="max-w-4xl mx-auto space-y-6 py-6">
+        
+        {/* Header Block */}
+        <div className="flex items-center justify-between border-b border-[#e8e4dc] pb-4">
+          <div>
+            <span className="text-xs uppercase tracking-widest font-mono text-indigo-600 font-bold">{role || 'Verbal Track'}</span>
+            <h1 className="text-xl font-bold tracking-tight mt-0.5">Active Interview Session</h1>
+          </div>
+          <button 
+            onClick={() => navigate('/home')}
+            className="bg-white hover:bg-[#f5f2ec] text-xs font-semibold px-4 py-2 border border-[#e8e4dc] text-[#555] rounded-xl transition-all"
+          >
+            ← Quit Session
+          </button>
+        </div>
 
-      {/* Background */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-72 h-72 rounded-full opacity-5 blur-3xl"
-          style={{ background: 'radial-gradient(circle, #6366f1, transparent)' }} />
-        <div className="absolute inset-0 opacity-[0.02]"
-          style={{
-            backgroundImage: 'linear-gradient(#111 1px, transparent 1px), linear-gradient(90deg, #111 1px, transparent 1px)',
-            backgroundSize: '50px 50px',
-          }} />
-      </div>
+        {/* Question Panel */}
+        <div className="bg-white border border-[#e8e4dc] rounded-2xl p-5 shadow-sm space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-bold bg-[#faf9f7] border border-[#e8e4dc] px-2.5 py-1 rounded-md uppercase tracking-wider text-[#555]">
+              Topic: {targetTopic}
+            </span>
+          </div>
+          <p className="text-sm sm:text-base text-[#222] font-medium leading-relaxed">
+            {targetQuestion || "No interview questions retrieved. Please head back to the selection matrix dashboard."}
+          </p>
+        </div>
 
-      <div className="flex-1 page-wrap py-10 sm:py-14 relative z-10">
-        <div className="max-w-2xl mx-auto">
+        {/* Responsive Answer and Evaluation Split Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* Input Area */}
+          <div className="bg-white border border-[#e8e4dc] rounded-2xl p-5 shadow-sm flex flex-col justify-between space-y-4">
+            <div className="space-y-2">
+              <label className="text-xs font-bold text-[#555] uppercase tracking-wider block">Your Response:</label>
+              <textarea
+                value={currentAnswer}
+                onChange={(e) => setCurrentAnswer(e.target.value)}
+                placeholder="Type your detailed answer here or structure your technical thoughts..."
+                disabled={loading || evalResult}
+                className="w-full h-48 p-3 text-sm bg-[#faf9f7] border border-[#e8e4dc] rounded-xl focus:outline-none focus:border-indigo-500 font-sans resize-none disabled:opacity-60"
+              />
+            </div>
 
-          {/* Progress bar */}
-          <div className="h-1 bg-[#e8e4dc] rounded-full mb-8 overflow-hidden">
-            <div className="h-full rounded-full transition-all duration-300"
-              style={{ width: `${Math.max(charPct, 5)}%`, background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }} />
+            {error && <p className="text-xs text-red-500 font-mono">⚠️ {error}</p>}
+
+            {!evalResult && (
+              <button
+                onClick={handleSubmitAnswer}
+                disabled={loading || !currentAnswer.trim()}
+                className="w-full py-3 bg-[#111] hover:bg-[#222] text-white font-bold text-xs rounded-xl transition-all shadow-md disabled:opacity-40"
+              >
+                {loading ? '🤖 Analyzing parameters...' : '📨 Submit Answer'}
+              </button>
+            )}
           </div>
 
-          {/* Breadcrumb */}
-          <div className="flex flex-wrap items-center gap-2 mb-8">
-            <span className="bg-[#111] text-white text-xs px-3 py-1.5 rounded-full font-medium">{role}</span>
-            <span className="text-[#ddd] text-xs">·</span>
-            <span className="bg-white border border-[#e0ddd8] text-[#666] text-xs px-3 py-1.5 rounded-full">{level}</span>
-            <span className="text-[#ddd] text-xs">·</span>
-            <span className="bg-white border border-[#e0ddd8] text-[#666] text-xs px-3 py-1.5 rounded-full">{question.topic}</span>
-          </div>
-
-          {/* Question card */}
-          <div className="relative bg-white border border-[#e8e4dc] rounded-2xl overflow-hidden mb-5 shadow-sm">
-            <div className="absolute top-0 left-0 right-0 h-1"
-              style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6)' }} />
-            <div className="px-5 sm:px-7 py-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 rounded-lg flex items-center justify-center text-xs"
-                  style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}>
-                  <span className="text-white text-xs">?</span>
+          {/* AI Feedback Diagnostics Panel */}
+          <div className="bg-white border border-[#e8e4dc] rounded-2xl p-5 shadow-sm space-y-4">
+            <label className="text-xs font-bold text-[#555] uppercase tracking-wider block border-b border-[#f0ede6] pb-1">AI Evaluation Analysis:</label>
+            
+            {evalResult ? (
+              <div className="space-y-4">
+                <div className="grid grid-cols-3 gap-2">
+                  <div className="bg-[#faf9f7] border border-[#e8e4dc] p-3 rounded-xl text-center">
+                    <p className="text-xl font-bold text-indigo-600">{(evalResult.scores?.clarity !== undefined) ? evalResult.scores.clarity : '—'}/10</p>
+                    <p className="text-[10px] text-[#aaa] font-medium uppercase tracking-wider">Clarity</p>
+                  </div>
+                  <div className="bg-[#faf9f7] border border-[#e8e4dc] p-3 rounded-xl text-center">
+                    <p className="text-xl font-bold text-emerald-600">{(evalResult.scores?.depth !== undefined) ? evalResult.scores.depth : '—'}/10</p>
+                    <p className="text-[10px] text-[#aaa] font-medium uppercase tracking-wider">Depth</p>
+                  </div>
+                  <div className="bg-[#faf9f7] border border-[#e8e4dc] p-3 rounded-xl text-center">
+                    <p className="text-xl font-bold text-amber-500">{(evalResult.scores?.keywords !== undefined) ? evalResult.scores.keywords : '—'}/10</p>
+                    <p className="text-[10px] text-[#aaa] font-medium uppercase tracking-wider">Keywords</p>
+                  </div>
                 </div>
-                <p className="text-xs text-[#6366f1] uppercase tracking-widest font-medium">Interview Question</p>
+
+                {/* ✅ DASHBOARD ROUTING SYNC BUTTON */}
+                <button
+                  onClick={() => navigate('/dashboard')}
+                  className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl transition-all shadow-md flex items-center justify-center gap-1.5"
+                >
+                  📊 Save & View Updated Analytics Dashboard
+                </button>
+
+                <div className="bg-[#faf9f7] border border-[#e8e4dc] rounded-xl p-3 space-y-1">
+                  <p className="text-xs font-bold text-[#111]">Strengths:</p>
+                  <ul className="text-xs text-[#555] list-inside list-disc space-y-0.5">
+                    {evalResult.strengths?.map((str, i) => <li key={i}>{str}</li>) || <li>No criteria listed.</li>}
+                  </ul>
+                </div>
+
+                <div className="bg-red-50/60 border border-red-100 rounded-xl p-3 space-y-1">
+                  <p className="text-xs font-bold text-red-800">Missed Points:</p>
+                  <ul className="text-xs text-red-700 list-inside list-disc space-y-0.5">
+                    {evalResult.missed_points?.map((pt, i) => <li key={i}>{pt}</li>) || <li>No recommendations listed.</li>}
+                  </ul>
+                </div>
               </div>
-              <p className="text-[#111] text-base sm:text-lg font-medium leading-relaxed">
-                {question.question}
-              </p>
-            </div>
-          </div>
-
-          {/* Answer card */}
-          <div className="bg-white border border-[#e8e4dc] rounded-2xl p-5 sm:p-6 mb-4 shadow-sm">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">✍️</span>
-                <label className="text-xs text-[#aaa] uppercase tracking-widest font-medium">Your Answer</label>
+            ) : (
+              <div className="h-44 flex flex-col items-center justify-center text-center text-[#aaa] border border-dashed border-[#e8e4dc] rounded-xl">
+                <span className="text-xl mb-1">🤖</span>
+                <p className="text-xs font-medium">Awaiting evaluation submission stream context...</p>
               </div>
-              <VoiceInput onTranscript={(t) => setAnswer((prev) => prev ? prev + ' ' + t : t)} />
-            </div>
-            <textarea
-              className="input resize-none"
-              rows={8}
-              placeholder="Type your answer here, or click Voice to speak…"
-              value={answer}
-              onChange={(e) => setAnswer(e.target.value)}
-            />
-            <div className="flex justify-between items-center mt-3">
-              <span className={`text-xs font-medium ${answer.length > 750 ? 'text-amber-500' : 'text-[#ccc]'}`}>
-                {answer.length}/800 characters
-              </span>
-              {answer.length >= 10 && (
-                <span className="text-xs text-green-500 flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-green-500 inline-block"></span>
-                  Ready to submit
-                </span>
-              )}
-            </div>
-          </div>
-
-          {error && (
-            <div className="bg-red-50 border border-red-100 text-red-500 rounded-xl px-4 py-3 text-sm flex items-center gap-2 mb-4">
-              <span>⚠️</span> {error}
-            </div>
-          )}
-
-          {/* Actions */}
-          <div className="flex gap-3">
-            <button onClick={() => navigate('/home')}
-              className="flex-1 py-3.5 rounded-2xl text-sm font-medium bg-white border border-[#e0ddd8] text-[#555] hover:border-[#bbb] transition-all">
-              ← Back
-            </button>
-            <button onClick={handleSubmit} disabled={loading || answer.trim().length < 10}
-              className="flex-[2] py-3.5 rounded-2xl text-sm font-semibold text-white transition-all duration-200 shadow-lg hover:shadow-xl hover:-translate-y-0.5 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
-              style={{ background: 'linear-gradient(135deg, #111 0%, #333 100%)' }}>
-              {loading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
-                  </svg>
-                  AI is evaluating…
-                </span>
-              ) : '⚡ Submit for AI evaluation'}
-            </button>
+            )}
           </div>
 
         </div>
+
       </div>
       <Footer />
     </div>

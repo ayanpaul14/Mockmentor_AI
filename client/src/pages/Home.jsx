@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import Footer from '../components/Footer';
 
-// Dynamic role selection map configurations array
+// Selection matrix configurations array
 const ROLES = [
   { id: 'SDE',             icon: '💻', desc: 'Software Development Engineer', color: '#eef2ff', border: '#c7d2fe' },
   { id: 'Data Analyst',     icon: '📊', desc: 'Data & Business Analytics',       color: '#f0fdf4', border: '#bbf7d0' },
@@ -28,32 +28,35 @@ export default function Home() {
 
   const handleStart = async () => {
     if (!role || !level) return setError('Please select both a role and experience level.');
+    
+    // Clear out warning text boxes instantly on click execution
     setError('');
     setLoading(true);
+
+    // 🛑 CRITICAL FAST-PASS ROUTING BYPASS
+    // If Coding Round is active, we completely circumvent the network request channel
+    if (role === 'Coding Round') {
+      const fallbackQuestionData = {
+        topic: 'Arrays',
+        question: 'Two Sum:\n\nGiven an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nExample:\nInput: nums = [2,7,11,15], target = 9\nOutput: [0,1]'
+      };
+      
+      setLoading(false);
+      navigate('/coding-round', { 
+        state: { role, level, question: fallbackQuestionData } 
+      });
+      return; // Absolute return guarantee to drop execution flow before it can hit the backend /questions path
+    }
+
+    // 🗣️ VERBAL ASSESSMENTS LOOKUP PATHWAY (SDE, DevOps, etc.)
     try {
-      // 1. Fire API call request to pull questions matching your selection fields
       const { data } = await api.get('/questions', { params: { role, level } });
       
-      // 🛡️ ACCELERATOR SAFEGUARD: If backend has no data seeded for Coding Round, inject local fallback object
-      let finalQuestionData = data;
-      if (!data && role === 'Coding Round') {
-        finalQuestionData = {
-          topic: 'Arrays',
-          question: 'Two Sum:\n\nGiven an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.\n\nYou may assume that each input would have exactly one solution, and you may not use the same element twice.\n\nExample:\nInput: nums = [2,7,11,15], target = 9\nOutput: [0,1]'
-        };
-      } else if (!data) {
-        // Halt and display error message banner only if a traditional verbal track comes back completely blank
+      if (!data) {
         return setError('No questions found for this role and level in database.');
       }
 
-      // 2. Clear out parameters and pipe state objects right through the router streams
-      if (role === 'Coding Round') {
-        navigate('/coding-round', { 
-          state: { role, level, question: finalQuestionData } 
-        });
-      } else {
-        navigate('/interview', { state: { question: finalQuestionData, role, level } });
-      }
+      navigate('/interview', { state: { question: data, role, level } });
     } catch (err) {
       setError(err.response?.data?.error || 'Could not fetch a question. Try again.');
     } finally {
@@ -64,19 +67,19 @@ export default function Home() {
   return (
     <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(160deg, #fafaf7 0%, #f0ede6 100%)' }}>
 
-      {/* Top decorative band */}
+      {/* Rainbow design header bar */}
       <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899, #f59e0b)' }} />
 
       <div className="flex-1 page-wrap py-12 sm:py-16">
 
-        {/* Header */}
+        {/* Branding header area */}
         <div className="mb-10">
           <div className="inline-flex items-center gap-2 bg-white border border-[#e8e4dc] rounded-full px-4 py-2 mb-5 shadow-sm">
             <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse inline-block"></span>
             <span className="text-xs text-[#666] font-medium">Ready to practice</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-[#111] tracking-tight mb-2" style={{ letterSpacing: '-0.03em' }}>
-            Welcome back, {user?.name?.split(' ')[0]}! 👋
+            Welcome back, {user?.name ? user.name.split(' ')[0] : 'Developer'}! 👋
           </h1>
           <p className="text-[#888] text-sm sm:text-base">
             Choose your role and experience level to get a tailored interview question.
@@ -85,7 +88,7 @@ export default function Home() {
 
         <div className="max-w-2xl space-y-8">
 
-          {/* Role selector */}
+          {/* 1. Track Choice Panel */}
           <div>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-5 h-5 rounded-md bg-[#111] flex items-center justify-center">
@@ -121,7 +124,7 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Level selector */}
+          {/* 2. Complexity Choice Panel */}
           <div>
             <div className="flex items-center gap-2 mb-3">
               <div className="w-5 h-5 rounded-md bg-[#111] flex items-center justify-center">
@@ -153,15 +156,16 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Error Banner Output Element */}
           {error && (
-            <div className="bg-red-50 border-2 border-red-100 text-red-500 rounded-2xl px-4 py-3 text-sm flex items-center gap-2">
+            <div className="bg-red-50 border-2 border-red-100 text-red-500 rounded-2xl px-4 py-3 text-sm flex items-center gap-2 animate-fadeIn">
               <span>⚠️</span> {error}
             </div>
           )}
 
-          {/* Selection summary */}
+          {/* Selected Variables Summary Bubble */}
           {(role || level) && (
-            <div className="bg-white border-2 border-[#e8e4dc] rounded-2xl px-5 py-4 flex items-center gap-3">
+            <div className="bg-white border-2 border-[#e8e4dc] rounded-2xl px-5 py-4 flex items-center gap-3 shadow-sm">
               <span className="text-lg">📋</span>
               <div className="flex-1">
                 <p className="text-xs text-[#aaa] uppercase tracking-widest mb-1">Your selection</p>
@@ -175,16 +179,15 @@ export default function Home() {
             </div>
           )}
 
-          {/* CTA Actions Block */}
+          {/* Primary Call-to-Actions Bar */}
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
             <button onClick={handleStart} disabled={loading || !role || !level}
-              className="flex-1 py-4 rounded-2xl text-sm font-bold text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed disabled:transform-none"
+              className="flex-1 py-4 rounded-2xl text-sm font-bold text-white transition-all duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
               style={{
                 background: loading || !role || !level
                   ? '#aaa'
                   : 'linear-gradient(135deg, #111 0%, #374151 100%)',
                 boxShadow: !loading && role && level ? '0 8px 24px rgba(0,0,0,0.2)' : 'none',
-                transform: !loading && role && level ? 'translateY(0)' : 'none',
               }}>
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -192,13 +195,13 @@ export default function Home() {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"/>
                   </svg>
-                  Fetching environment...
+                  Setting up environment...
                 </span>
-              ) : '🚀 Start interview'}
+              ) : '🚀 Start practice round'}
             </button>
-            <button onClick={() => navigate('/profile')}
-              className="flex-1 py-4 rounded-2xl text-sm font-semibold bg-white border-2 border-[#e0ddd8] text-[#555] hover:border-[#999] transition-all duration-200">
-              📊 View Profile Stats
+            <button onClick={() => navigate('/dashboard')}
+              className="flex-1 py-4 rounded-2xl text-sm font-semibold bg-white border-2 border-[#e0ddd8] text-[#555] hover:border-[#999] transition-all duration-200 shadow-sm">
+              📊 Open Analytics Charts
             </button>
           </div>
 
