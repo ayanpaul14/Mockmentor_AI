@@ -35,19 +35,21 @@ var twoSum = function(nums, target) {
   const handleAIEvaluation = async () => {
     setLoading(true);
     setError('');
+    setEvalResult(null); // Clear previous reports during new submission cycles
     try {
       const { data } = await api.post('/evaluate', {
         role: 'Coding Round',
         level: 'Fresher',
-        topic: 'Arrays',
-        question: {
-          topic: 'Arrays',
-          question: 'Two Sum: Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.'
-        },
+        topic: 'Arrays', 
+        question: 'Two Sum: Given an array of integers nums and an integer target, return indices of the two numbers such that they add up to target.',
         candidateAnswer: code.trim(),
       });
       
-      setEvalResult(data.result);
+      if (data.success && data.result) {
+        setEvalResult(data.result);
+      } else {
+        setError('Evaluation response payload format unrecognized.');
+      }
     } catch (err) {
       setError(err.response?.data?.error || 'AI Evaluation sequence failed. Please retry.');
     } finally {
@@ -67,6 +69,12 @@ var twoSum = function(nums, target) {
             <span className="text-xs text-[#aaa]">/ Coding Round Matrix</span>
           </div>
           <div className="flex items-center gap-3">
+            <button 
+              onClick={() => navigate('/home')}
+              className="bg-white hover:bg-[#f5f2ec] text-xs font-semibold px-3 py-1.5 border border-[#e8e4dc] text-[#555] rounded-xl transition-all"
+            >
+              ← Dashboard
+            </button>
             <div className="bg-[#fef2f2] border border-[#fecaca] rounded-xl px-3 py-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#dc2626]">
               ⏱️ 24:31
             </div>
@@ -111,7 +119,7 @@ var twoSum = function(nums, target) {
           </div>
 
           {/* RIGHT PANEL: Monaco Integrated Editor Workspace */}
-          <div className="bg-[#1e1e1e] rounded-2xl shadow-xl border border-neutral-800 overflow-hidden flex flex-col justify-between min-h-[350px]">
+          <div className="bg-[#1e1e1e] rounded-2xl shadow-xl border border-neutral-800 overflow-hidden flex flex-col justify-between min-h-[380px]">
             <div className="bg-[#181818] px-4 py-3 border-b border-neutral-800 flex items-center justify-between">
               <div className="flex gap-1.5">
                 <div className="w-3 h-3 rounded-full bg-[#ff5f57]" />
@@ -122,7 +130,7 @@ var twoSum = function(nums, target) {
               <div className="w-8" />
             </div>
             
-            <div className="flex-1 py-2">
+            <div className="flex-1 py-2 min-h-[300px]">
               <Editor
                 height="100%"
                 defaultLanguage="javascript"
@@ -197,19 +205,18 @@ var twoSum = function(nums, target) {
             {error && <p className="text-xs text-red-500 font-mono">⚠️ {error}</p>}
 
             {evalResult ? (
-              <div className="space-y-4 animate-fade-in">
-                {/* Dynamically Populated Custom Score Matrix Blocks */}
+              <div className="space-y-4">
                 <div className="grid grid-cols-3 gap-2">
                   <div className="bg-[#faf9f7] border border-[#e8e4dc] p-3 rounded-xl text-center">
-                    <p className="text-xl font-bold text-indigo-600">{evalResult.scores?.clarity || 0}/10</p>
+                    <p className="text-xl font-bold text-indigo-600">{(evalResult.scores?.clarity !== undefined) ? evalResult.scores.clarity : '—'}/10</p>
                     <p className="text-[10px] text-[#aaa] font-medium uppercase tracking-wider">Clarity</p>
                   </div>
                   <div className="bg-[#faf9f7] border border-[#e8e4dc] p-3 rounded-xl text-center">
-                    <p className="text-xl font-bold text-emerald-600">{evalResult.scores?.depth || 0}/10</p>
+                    <p className="text-xl font-bold text-emerald-600">{(evalResult.scores?.depth !== undefined) ? evalResult.scores.depth : '—'}/10</p>
                     <p className="text-[10px] text-[#aaa] font-medium uppercase tracking-wider">Complexity</p>
                   </div>
                   <div className="bg-[#faf9f7] border border-[#e8e4dc] p-3 rounded-xl text-center">
-                    <p className="text-xl font-bold text-amber-500">{evalResult.scores?.keywords || 0}/10</p>
+                    <p className="text-xl font-bold text-amber-500">{(evalResult.scores?.keywords !== undefined) ? evalResult.scores.keywords : '—'}/10</p>
                     <p className="text-[10px] text-[#aaa] font-medium uppercase tracking-wider">Code Quality</p>
                   </div>
                 </div>
@@ -217,20 +224,20 @@ var twoSum = function(nums, target) {
                 <div className="bg-[#faf9f7] border border-[#e8e4dc] rounded-xl p-3 space-y-1.5">
                   <p className="text-xs font-bold text-[#111]">Key Accomplishments:</p>
                   <ul className="text-xs text-[#555] list-inside list-disc space-y-0.5">
-                    {evalResult.strengths?.map((str, i) => <li key={i}>{str}</li>)}
+                    {evalResult.strengths?.map((str, i) => <li key={i}>{str}</li>) || <li>No analysis reported.</li>}
                   </ul>
                 </div>
 
                 <div className="bg-red-50/60 border border-red-100 rounded-xl p-3 space-y-1.5">
                   <p className="text-xs font-bold text-red-800">Identified Vulnerabilities & Edge Cases:</p>
                   <ul className="text-xs text-red-700 list-inside list-disc space-y-0.5">
-                    {evalResult.missed_points?.map((pt, i) => <li key={i}>{pt}</li>)}
+                    {evalResult.missed_points?.map((pt, i) => <li key={i}>{pt}</li>) || <li>No vulnerabilities reported.</li>}
                   </ul>
                 </div>
 
-                <div className="bg-[#1e1e1e] rounded-xl p-3 font-mono text-[11px] text-emerald-400 overflow-x-auto whitespace-pre">
+                <div className="bg-[#1e1e1e] rounded-xl p-3 font-mono text-[11px] text-emerald-400 overflow-x-auto whitespace-pre max-h-[180px]">
                   <p className="font-sans font-bold text-xs text-white mb-1">Optimized Solution Model Reference:</p>
-                  {evalResult.model_answer}
+                  {evalResult.model_answer || '// No solution reference available.'}
                 </div>
               </div>
             ) : (

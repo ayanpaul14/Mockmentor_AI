@@ -31,7 +31,7 @@ export default function Home() {
     setError('');
     setLoading(true);
     try {
-      // 1. Intercept Coding Round tracks to bypass verbal page wrappers
+      // 1. Intercept Coding Round track selections to directly route into the Monaco Code Sandbox view
       if (role === 'Coding Round') {
         navigate('/coding-round', { 
           state: { 
@@ -46,7 +46,7 @@ export default function Home() {
         return;
       }
 
-      // 2. Fallback execution to default verbal question configurations
+      // 2. Fallback execution route loop for traditional verbal configuration arrays
       const { data } = await api.get('/questions', { params: { role, level } });
       navigate('/interview', { state: { question: data, role, level } });
     } catch (err) {
@@ -191,9 +191,9 @@ export default function Home() {
                 </span>
               ) : '🚀 Start interview'}
             </button>
-            <button onClick={() => navigate('/dashboard')}
+            <button onClick={() => navigate('/profile')}
               className="flex-1 py-4 rounded-2xl text-sm font-semibold bg-white border-2 border-[#e0ddd8] text-[#555] hover:border-[#999] transition-all duration-200">
-              📊 View dashboard
+              📊 View Profile Stats
             </button>
           </div>
 

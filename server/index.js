@@ -11,7 +11,30 @@ dotenv.config();
 
 const app = express();
 
-app.use(cors({ origin: process.env.CLIENT_URL || 'http://localhost:5173' }));
+// Whitelist configuration array handles dev ports, staging links, and main lines
+const allowedOrigins = [
+  'https://mockmentor-ai.vercel.app',
+  'http://localhost:5173'
+];
+
+app.use(cors({
+  origin: (origin, callback) => {
+    // Permit background test tools or standalone extensions lacking origin headers (like Postman or curl)
+    if (!origin) return callback(null, true);
+    
+    // Evaluate if the origin matches production, development ports, or any vercel branch preview patterns
+    const isAllowed = allowedOrigins.includes(origin) || 
+                      /^https:\/\/mockmentor-.*-ayanpaul14s-projects\.vercel\.app$/.test(origin);
+
+    if (isAllowed) {
+      callback(null, true);
+    } else {
+      callback(new Error('Cross-Origin Request Blocked by App CORS Framework Layer'));
+    }
+  },
+  credentials: true
+}));
+
 app.use(express.json());
 
 mongoose
