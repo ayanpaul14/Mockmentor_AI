@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, ReferenceLine,
@@ -23,13 +23,16 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 export default function Dashboard() {
   const navigate  = useNavigate();
+  const location  = useLocation(); // ✅ ADD THIS
   const [sessions, setSessions] = useState([]);
   const [stats, setStats] = useState({ total: 0, avgScore: '0.0', weakestTopic: 'None yet' });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // 🔑 Secure your data fetch by appending your Authorization Token
+    setLoading(true); // ✅ Reset loading state on every navigation
+    setError('');
+
     const token = localStorage.getItem('token');
 
     api.get('/sessions', {
@@ -75,7 +78,7 @@ export default function Dashboard() {
       })
       .catch(() => setError('Could not load sessions. Please verify login state.'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [location]); // ✅ THE FIX: re-fetch every time you navigate to this page
 
   if (loading) return (
     <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(160deg, #fafaf7 0%, #f0ede6 100%)' }}>
