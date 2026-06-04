@@ -29,12 +29,18 @@ export default function Dashboard() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get('/sessions')
+    // 🔑 Secure your data fetch by appending your Authorization Token
+    const token = localStorage.getItem('token');
+
+    api.get('/sessions', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
       .then(({ data }) => {
         if (data && Array.isArray(data)) {
           setSessions(data);
           
-          // 📊 Calculate stats from raw session array dynamically to prevent crashes
           const total = data.length;
           let totalScore = 0;
           const topicScores = {};
@@ -50,7 +56,6 @@ export default function Dashboard() {
             }
           });
 
-          // Find weakest topic
           let weakest = 'None yet';
           let lowestAvg = 11;
           Object.keys(topicScores).forEach(topic => {
@@ -68,7 +73,7 @@ export default function Dashboard() {
           });
         }
       })
-      .catch(() => setError('Could not load sessions.'))
+      .catch(() => setError('Could not load sessions. Please verify login state.'))
       .finally(() => setLoading(false));
   }, []);
 
@@ -91,7 +96,7 @@ export default function Dashboard() {
     <div className="flex flex-col min-h-screen" style={{ background: 'linear-gradient(160deg, #fafaf7 0%, #f0ede6 100%)' }}>
       <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899, #f59e0b)' }} />
       <div className="flex-1 flex items-center justify-center">
-        <p className="text-red-500 text-sm">{error}</p>
+        <p className="text-red-500 text-sm">⚠️ {error}</p>
       </div>
       <Footer />
     </div>

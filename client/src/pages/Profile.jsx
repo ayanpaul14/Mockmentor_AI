@@ -1,161 +1,96 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { useEffect, useState } from 'react';
 import api from '../api/axios';
+import { useAuth } from '../context/AuthContext';
 import Footer from '../components/Footer';
 
 export default function Profile() {
   const { user } = useAuth();
-  const navigate = useNavigate();
-  
-  // Dynamic metrics state hooks
-  const [stats, setStats] = useState({
-    totalSessions: 0,
-    averageScore: 0,
-    codingRoundsCount: 0,
-    verbalRoundsCount: 0
-  });
-  const [recentSessions, setRecentSessions] = useState([]);
+  const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchUserStats = async () => {
-      try {
-        setLoading(true);
-        // 📥 Fetch live records directly out of your MongoDB collection
-        const { data } = await api.get('/sessions');
-        
-        if (data && Array.isArray(data)) {
-          const total = data.length;
-          let totalScoreSum = 0;
-          let codingCount = 0;
-          let verbalCount = 0;
+    // 🔑 Secure your profiles array fetch request
+    const token = localStorage.getItem('token');
 
-          data.forEach(session => {
-            // ✅ SCHEMA SYNCHRONIZATION: Parsing directly from root database model properties
-            const clarity = session.scores?.clarity || 0;
-            const depth = session.scores?.depth || 0;
-            const quality = session.scores?.keywords || 0;
-            
-            const avgSessionScore = (clarity + depth + quality) / 3;
-            totalScoreSum += avgSessionScore;
-
-            if (session.role === 'Coding Round') {
-              codingCount++;
-            } else {
-              verbalCount++;
-            }
-          });
-
-          setStats({
-            totalSessions: total,
-            averageScore: total > 0 ? (totalScoreSum / total).toFixed(1) : 0,
-            codingRoundsCount: codingCount,
-            verbalRoundsCount: verbalCount
-          });
-          
-          // Store the 5 newest data elements for table feed rendering
-          setRecentSessions(data.slice(0, 5));
-        }
-      } catch (err) {
-        setError(err.response?.data?.error || 'Failed to sync performance history profiles.');
-      } finally {
-        setLoading(false);
+    api.get('/sessions', {
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-    };
-
-    fetchUserStats();
+    })
+      .then(({ data }) => {
+        if (data && Array.isArray(data)) {
+          setSessions(data);
+        }
+      })
+      .catch(() => setError('Could not verify profile metrics stream history.'))
+      .finally(() => setLoading(false));
   }, []);
 
   return (
-    <div className="min-h-screen p-4 sm:p-6 font-sans text-[#111]" style={{ background: '#fafaf7' }}>
-      <div className="max-w-4xl mx-auto space-y-6 py-8">
+    <div className="flex flex-col min-h-screen" style={{ background: '#fafaf7' }}>
+      <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899, #f59e0b)' }} />
+      
+      <div className="flex-1 max-w-4xl w-full mx-auto px-4 py-12 space-y-8 select-none text-[#111]">
         
-        {/* Profile Card Header */}
-        <div className="bg-white border border-[#e8e4dc] rounded-2xl p-6 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 bg-[#111] rounded-2xl flex items-center justify-center text-white text-2xl font-bold shadow-md">
-              {user?.name ? user.name.charAt(0).toUpperCase() : 'M'}
+        {/* User Identity Banner Card */}
+        <div className="bg-white border-2 border-[#e8e4dc] rounded-3xl p-6 sm:p-8 flex flex-col sm:flex-row items-center gap-6 shadow-sm">
+          <div className="w-20 h-20 rounded-2xl bg-[#111] flex items-center justify-center font-black text-3xl text-white shadow-md">
+            {user?.name ? user.name.charAt(0).toUpperCase() : 'D'}
+          </div>
+          <div className="text-center sm:text-left flex-1">
+            <h2 className="text-2xl font-bold tracking-tight">{user?.name || 'Ayan Paul'}</h2>
+            <p className="text-xs text-[#aaa] font-mono mt-0.5">{user?.email || 'developer@domain.com'}</p>
+            <div className="mt-3 flex flex-wrap gap-2 justify-center sm:justify-start">
+              <span className="text-[10px] uppercase font-bold tracking-wider bg-indigo-50 border border-indigo-200 text-indigo-600 px-3 py-1 rounded-full">
+                Active Member
+              </span>
+              <span className="text-[10px] uppercase font-bold tracking-wider bg-emerald-50 border border-emerald-200 text-emerald-600 px-3 py-1 rounded-full">
+                {sessions.length} Completed Runs
+              </span>
             </div>
-            <div>
-              <h2 className="text-xl font-bold tracking-tight">{user?.name || 'Developer Candidate'}</h2>
-              <p className="text-xs text-[#aaa] font-mono">{user?.email || 'authenticated@mockmentor.ai'}</p>
-            </div>
-          </div>
-          <button 
-            onClick={() => navigate('/home')}
-            className="self-start sm:self-center bg-white hover:bg-[#f5f2ec] text-xs font-semibold px-4 py-2 border border-[#e8e4dc] text-[#555] rounded-xl transition-all"
-          >
-            ← Back to Dashboard
-          </button>
-        </div>
-
-        {/* Dynamic Metrics Panel Grid Layout */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white border border-[#e8e4dc] p-4 rounded-xl shadow-sm text-center">
-            <p className="text-2xl font-bold text-[#111]">{loading ? '—' : stats.totalSessions}</p>
-            <p className="text-[10px] text-[#aaa] font-semibold uppercase tracking-wider mt-1">Total Rounds</p>
-          </div>
-          <div className="bg-white border border-[#e8e4dc] p-4 rounded-xl shadow-sm text-center">
-            <p className="text-2xl font-bold text-indigo-600">{loading ? '—' : `${stats.averageScore}/10`}</p>
-            <p className="text-[10px] text-[#aaa] font-semibold uppercase tracking-wider mt-1">Average Rating</p>
-          </div>
-          <div className="bg-white border border-[#e8e4dc] p-4 rounded-xl shadow-sm text-center">
-            <p className="text-2xl font-bold text-amber-500">{loading ? '—' : stats.codingRoundsCount}</p>
-            <p className="text-[10px] text-[#aaa] font-semibold uppercase tracking-wider mt-1">Coding Arenas</p>
-          </div>
-          <div className="bg-white border border-[#e8e4dc] p-4 rounded-xl shadow-sm text-center">
-            <p className="text-2xl font-bold text-emerald-600">{loading ? '—' : stats.verbalRoundsCount}</p>
-            <p className="text-[10px] text-[#aaa] font-semibold uppercase tracking-wider mt-1">Verbal Tracks</p>
           </div>
         </div>
 
-        {/* History Table Log Area */}
-        <div className="bg-white border border-[#e8e4dc] rounded-2xl p-5 shadow-sm space-y-4">
-          <h3 className="font-bold text-sm border-b border-[#f0ede6] pb-2">Recent Performance Log</h3>
-          
-          {error && <p className="text-xs text-red-500 font-mono">⚠️ {error}</p>}
+        {/* Breakdown Segment Blocks */}
+        <div className="space-y-4">
+          <h3 className="font-bold text-sm uppercase tracking-widest text-[#555]">Historical Ledger Logs</h3>
           
           {loading ? (
-            <p className="text-xs text-[#aaa] font-mono py-4 text-center">Synchronizing performance index logs...</p>
-          ) : recentSessions.length === 0 ? (
-            <div className="text-center py-8 text-[#aaa] border border-dashed border-[#e8e4dc] rounded-xl space-y-1">
-              <p className="text-sm">No historical assessment sessions found.</p>
-              <p className="text-xs">Complete an interview track to populate your global matrix charts!</p>
+            <p className="text-xs font-medium text-[#aaa] animate-pulse">Re-syncing account logs from cloud instance...</p>
+          ) : error ? (
+            <p className="text-xs font-mono text-red-500">⚠️ {error}</p>
+          ) : sessions.length > 0 ? (
+            <div className="space-y-3">
+              {sessions.map((s) => (
+                <div key={s._id} className="bg-white border border-[#e8e4dc] rounded-2xl p-5 shadow-sm space-y-3">
+                  <div className="flex justify-between items-start gap-4">
+                    <div>
+                      <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">{s.role} · {s.topic}</p>
+                      <h4 className="text-sm font-semibold text-[#111] mt-0.5 leading-snug">{s.question}</h4>
+                    </div>
+                    <div className="bg-[#faf9f7] border border-[#e8e4dc] rounded-xl px-3 py-1.5 text-center font-mono flex-shrink-0">
+                      <span className="text-sm font-bold text-[#111]">{s.scores?.overall || 0}</span>
+                      <span className="text-[10px] text-[#aaa]">/10</span>
+                    </div>
+                  </div>
+
+                  {/* Clean schema string parameter text layout renders */}
+                  {s.candidateAnswer && (
+                    <div className="bg-[#faf9f7] border border-[#e8e4dc] rounded-xl p-3 font-mono text-xs text-[#555] whitespace-pre-wrap max-h-24 overflow-y-auto">
+                      <span className="font-sans font-bold text-[#111] block mb-1">Your response entry:</span>
+                      {s.candidateAnswer}
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-left font-mono text-xs text-[#444] border-collapse">
-                <thead>
-                  <tr className="bg-[#faf9f7] text-[#888] border-b border-[#e8e4dc]">
-                    <th className="p-3 font-semibold">Track Role</th>
-                    <th className="p-3 font-semibold">Complexity</th>
-                    <th className="p-3 font-semibold">Topic Cluster</th>
-                    <th className="p-3 font-semibold">Timestamp</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-[#f0ede6]">
-                  {recentSessions.map((session) => (
-                    <tr key={session._id} className="hover:bg-[#faf9f7]/50 transition-colors">
-                      <td className="p-3 font-bold text-[#111]">{session.role}</td>
-                      <td className="p-3">
-                        <span className="px-2 py-0.5 rounded bg-neutral-100 text-[#555] font-sans text-[10px] font-medium">
-                          {session.level}
-                        </span>
-                      </td>
-                      <td className="p-3 truncate max-w-[180px]">{session.topic || 'General'}</td>
-                      <td className="p-3 text-[#aaa] font-sans text-[11px]">
-                        {new Date(session.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+            <div className="bg-white border-2 border-dashed border-[#e8e4dc] rounded-2xl p-10 text-center text-[#aaa] text-xs">
+              No historical session tracking matches detected under your unique key reference record.
             </div>
           )}
         </div>
-
       </div>
       <Footer />
     </div>
