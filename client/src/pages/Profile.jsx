@@ -1,16 +1,20 @@
 import { useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom'; // ✅ ADD THIS
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import Footer from '../components/Footer';
 
 export default function Profile() {
   const { user } = useAuth();
+  const location = useLocation(); // ✅ ADD THIS
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    // 🔑 Secure your profiles array fetch request
+    setLoading(true); // ✅ Reset on every navigation
+    setError('');
+
     const token = localStorage.getItem('token');
 
     api.get('/sessions', {
@@ -25,7 +29,7 @@ export default function Profile() {
       })
       .catch(() => setError('Could not verify profile metrics stream history.'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [location]); // ✅ THE FIX: re-fetch every time you navigate to this page
 
   return (
     <div className="flex flex-col min-h-screen" style={{ background: '#fafaf7' }}>
@@ -75,7 +79,6 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  {/* Clean schema string parameter text layout renders */}
                   {s.candidateAnswer && (
                     <div className="bg-[#faf9f7] border border-[#e8e4dc] rounded-xl p-3 font-mono text-xs text-[#555] whitespace-pre-wrap max-h-24 overflow-y-auto">
                       <span className="font-sans font-bold text-[#111] block mb-1">Your response entry:</span>
