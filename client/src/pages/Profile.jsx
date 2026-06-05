@@ -162,12 +162,12 @@ export default function Profile() {
               {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
             </div>
             <div className="text-center">
-              <h2 className="text-lg font-bold tracking-tight text-white">{user?.name || 'Ayan Paul'}</h2>
+              <h2 className="text-lg font-bold tracking-tight text-black">{user?.name || 'Ayan Paul'}</h2>
               <p className="text-xs text-[#aaa] mt-0.5">{user?.email || 'developer@domain.com'}</p>
             </div>
             <div className="w-full border-t border-[#e8e4dc] pt-4 grid grid-cols-3 gap-2 text-center">
               <div>
-                <p className="text-lg font-bold text-white">{total}</p>
+                <p className="text-lg font-bold text-black">{total}</p>
                 <p className="text-[10px] text-[#aaa] uppercase tracking-wider">Solved</p>
               </div>
               <div>
