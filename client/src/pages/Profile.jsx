@@ -19,7 +19,7 @@ function ActivityHeatmap({ sessions }) {
     countByDay[day] = (countByDay[day] || 0) + 1;
   });
   const color = (n) => {
-    if (!n) return '#1e2535';
+    if (!n) return '#f0ede6';
     if (n === 1) return '#0e4429';
     if (n === 2) return '#006d32';
     if (n === 3) return '#26a641';
@@ -46,11 +46,11 @@ function ActivityHeatmap({ sessions }) {
         ))}
       </div>
       <div className="flex items-center gap-1.5 mt-2 justify-end">
-        <span className="text-[10px] text-[#4d5566]">Less</span>
-        {['#1e2535','#0e4429','#006d32','#26a641','#39d353'].map(c => (
+        <span className="text-[10px] text-[#aaa]">Less</span>
+        {['#f0ede6','#0e4429','#006d32','#26a641','#39d353'].map(c => (
           <div key={c} style={{ background: c }} className="w-[10px] h-[10px] rounded-[2px]" />
         ))}
-        <span className="text-[10px] text-[#4d5566]">More</span>
+        <span className="text-[10px] text-[#aaa]">More</span>
       </div>
     </div>
   );
@@ -65,11 +65,11 @@ function DonutRing({ solved, total, color, label }) {
   return (
     <div className="flex flex-col items-center gap-1.5">
       <svg width="70" height="70" viewBox="0 0 70 70">
-        <circle cx="35" cy="35" r={r} fill="none" stroke="#1e2535" strokeWidth={stroke} />
+        <circle cx="35" cy="35" r={r} fill="none" stroke="#e8e4dc" strokeWidth={stroke} />
         <circle cx="35" cy="35" r={r} fill="none" stroke={color} strokeWidth={stroke}
           strokeDasharray={`${dash} ${circ}`} strokeLinecap="round"
           transform="rotate(-90 35 35)" style={{ transition: 'stroke-dasharray 0.8s ease' }} />
-        <text x="35" y="38" textAnchor="middle" fill="white" fontSize="13" fontWeight="bold">{solved}</text>
+        <text x="35" y="38" textAnchor="middle" fill="#111" fontSize="13" fontWeight="bold">{solved}</text>
       </svg>
       <span className="text-[11px] font-semibold" style={{ color }}>{label}</span>
     </div>
@@ -137,18 +137,18 @@ export default function Profile() {
   })();
 
   if (loading) return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: '#0a0e1a' }}>
+    <div className="min-h-screen flex items-center justify-center" style={{ background: 'linear-gradient(160deg, #fafaf7 0%, #f0ede6 100%)' }}>
       <div className="flex flex-col items-center gap-3">
         <div className="w-8 h-8 rounded-lg bg-[#ffa116] flex items-center justify-center font-black text-black text-sm animate-pulse">M</div>
-        <p className="text-[#4d5566] text-sm font-mono">Loading profile...</p>
+        <p className="text-[#aaa] text-sm font-mono">Loading profile...</p>
       </div>
     </div>
   );
 
   return (
-    <div className="flex flex-col min-h-screen font-mono" style={{ background: '#0a0e1a', color: '#e6edf3' }}>
+    <div className="flex flex-col min-h-screen font-mono" style={{ background: 'linear-gradient(160deg, #fafaf7 0%, #f0ede6 100%)', color: '#111' }}>
       {/* Top accent bar */}
-      <div className="h-[2px] w-full" style={{ background: 'linear-gradient(90deg, #ffa116, #ef4743, #39d353, #58a6ff)' }} />
+      <div className="h-1 w-full" style={{ background: 'linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899, #f59e0b)' }} />
 
       <div className="flex-1 max-w-6xl w-full mx-auto px-4 py-8 space-y-6">
 
@@ -156,54 +156,54 @@ export default function Profile() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
           {/* Left: identity card */}
-          <div className="bg-[#141928] border border-[#1e2535] rounded-xl p-6 flex flex-col items-center gap-4">
+          <div className="bg-white border border-[#e8e4dc] rounded-xl p-6 flex flex-col items-center gap-4">
             <div className="w-20 h-20 rounded-full flex items-center justify-center font-black text-3xl text-black shadow-lg"
               style={{ background: 'linear-gradient(135deg, #ffa116, #ff6b35)' }}>
               {user?.name ? user.name.charAt(0).toUpperCase() : 'A'}
             </div>
             <div className="text-center">
               <h2 className="text-lg font-bold tracking-tight text-white">{user?.name || 'Ayan Paul'}</h2>
-              <p className="text-xs text-[#4d5566] mt-0.5">{user?.email || 'developer@domain.com'}</p>
+              <p className="text-xs text-[#aaa] mt-0.5">{user?.email || 'developer@domain.com'}</p>
             </div>
-            <div className="w-full border-t border-[#1e2535] pt-4 grid grid-cols-3 gap-2 text-center">
+            <div className="w-full border-t border-[#e8e4dc] pt-4 grid grid-cols-3 gap-2 text-center">
               <div>
                 <p className="text-lg font-bold text-white">{total}</p>
-                <p className="text-[10px] text-[#4d5566] uppercase tracking-wider">Solved</p>
+                <p className="text-[10px] text-[#aaa] uppercase tracking-wider">Solved</p>
               </div>
               <div>
                 <p className="text-lg font-bold text-[#ffa116]">{streak}</p>
-                <p className="text-[10px] text-[#4d5566] uppercase tracking-wider">Streak</p>
+                <p className="text-[10px] text-[#aaa] uppercase tracking-wider">Streak</p>
               </div>
               <div>
                 <p className="text-lg font-bold text-[#58a6ff]">{avgScore}</p>
-                <p className="text-[10px] text-[#4d5566] uppercase tracking-wider">Avg</p>
+                <p className="text-[10px] text-[#aaa] uppercase tracking-wider">Avg</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-1.5 justify-center">
               <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#1a3a2a] text-[#39d353] border border-[#39d353]/20 font-bold">ACTIVE</span>
               {streak >= 3 && <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#3a2e10] text-[#ffa116] border border-[#ffa116]/20 font-bold">🔥 ON STREAK</span>}
-              {total >= 10 && <span className="text-[10px] px-2.5 py-1 rounded-full bg-[#1a2a3a] text-[#58a6ff] border border-[#58a6ff]/20 font-bold">VETERAN</span>}
+              {total >= 10 && <span className="text-[10px] px-2.5 py-1 rounded-full bg-indigo-50 text-[#58a6ff] border border-indigo-200 font-bold">VETERAN</span>}
             </div>
           </div>
 
           {/* Right: Solved breakdown */}
-          <div className="lg:col-span-2 bg-[#141928] border border-[#1e2535] rounded-xl p-6 space-y-5">
-            <h3 className="text-xs uppercase tracking-widest text-[#4d5566] font-bold">Problem Breakdown</h3>
+          <div className="lg:col-span-2 bg-white border border-[#e8e4dc] rounded-xl p-6 space-y-5">
+            <h3 className="text-xs uppercase tracking-widest text-[#aaa] font-bold">Problem Breakdown</h3>
             <div className="flex items-center justify-around">
               {/* Big total donut */}
               <div className="flex flex-col items-center gap-2">
                 <div className="relative">
                   <svg width="90" height="90" viewBox="0 0 90 90">
-                    <circle cx="45" cy="45" r="38" fill="none" stroke="#1e2535" strokeWidth="7" />
+                    <circle cx="45" cy="45" r="38" fill="none" stroke="#e8e4dc" strokeWidth="7" />
                     <circle cx="45" cy="45" r="38" fill="none" stroke="#ffa116" strokeWidth="7"
                       strokeDasharray={`${(total / Math.max(total, 50)) * 2 * Math.PI * 38} ${2 * Math.PI * 38}`}
                       strokeLinecap="round" transform="rotate(-90 45 45)"
                       style={{ transition: 'stroke-dasharray 1s ease' }} />
-                    <text x="45" y="43" textAnchor="middle" fill="white" fontSize="18" fontWeight="bold">{total}</text>
-                    <text x="45" y="56" textAnchor="middle" fill="#4d5566" fontSize="9">solved</text>
+                    <text x="45" y="43" textAnchor="middle" fill="#111" fontSize="18" fontWeight="bold">{total}</text>
+                    <text x="45" y="56" textAnchor="middle" fill="#aaa" fontSize="9">solved</text>
                   </svg>
                 </div>
-                <span className="text-[10px] text-[#4d5566]">Total</span>
+                <span className="text-[10px] text-[#aaa]">Total</span>
               </div>
 
               <div className="flex gap-6">
@@ -214,54 +214,54 @@ export default function Profile() {
             </div>
 
             {/* Topic bars */}
-            <div className="space-y-2 pt-2 border-t border-[#1e2535]">
-              <p className="text-[10px] uppercase tracking-widest text-[#4d5566] font-bold mb-3">Top Topics</p>
+            <div className="space-y-2 pt-2 border-t border-[#e8e4dc]">
+              <p className="text-[10px] uppercase tracking-widest text-[#aaa] font-bold mb-3">Top Topics</p>
               {topTopics.length > 0 ? topTopics.map(([topic, data]) => {
                 const pct = Math.min((data.count / total) * 100, 100);
                 const avg = (data.score / data.count).toFixed(1);
                 return (
                   <div key={topic} className="space-y-1">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-[#8b949e]">{topic}</span>
-                      <span className="text-[10px] text-[#4d5566]">{data.count} · avg {avg}</span>
+                      <span className="text-xs text-[#555]">{topic}</span>
+                      <span className="text-[10px] text-[#aaa]">{data.count} · avg {avg}</span>
                     </div>
-                    <div className="h-1.5 bg-[#1e2535] rounded-full overflow-hidden">
+                    <div className="h-1.5 bg-[#f0ede6] rounded-full overflow-hidden">
                       <div className="h-full rounded-full transition-all duration-700"
                         style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #58a6ff, #ffa116)' }} />
                     </div>
                   </div>
                 );
-              }) : <p className="text-xs text-[#4d5566]">No topic data yet.</p>}
+              }) : <p className="text-xs text-[#aaa]">No topic data yet.</p>}
             </div>
           </div>
         </div>
 
         {/* ── Activity Heatmap ── */}
-        <div className="bg-[#141928] border border-[#1e2535] rounded-xl p-6 space-y-4">
+        <div className="bg-white border border-[#e8e4dc] rounded-xl p-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-xs uppercase tracking-widest text-[#4d5566] font-bold">Activity — Last 24 Weeks</h3>
-            <span className="text-xs text-[#4d5566]">{total} submissions</span>
+            <h3 className="text-xs uppercase tracking-widest text-[#aaa] font-bold">Activity — Last 24 Weeks</h3>
+            <span className="text-xs text-[#aaa]">{total} submissions</span>
           </div>
           <ActivityHeatmap sessions={sessions} />
         </div>
 
         {/* ── Submission History ── */}
-        <div className="bg-[#141928] border border-[#1e2535] rounded-xl overflow-hidden">
-          <div className="px-6 py-4 border-b border-[#1e2535] flex items-center justify-between">
-            <h3 className="text-xs uppercase tracking-widest text-[#4d5566] font-bold">Recent Submissions</h3>
-            <span className="text-[10px] text-[#4d5566] bg-[#1e2535] px-2 py-1 rounded-full">{total} total</span>
+        <div className="bg-white border border-[#e8e4dc] rounded-xl overflow-hidden">
+          <div className="px-6 py-4 border-b border-[#e8e4dc] flex items-center justify-between">
+            <h3 className="text-xs uppercase tracking-widest text-[#aaa] font-bold">Recent Submissions</h3>
+            <span className="text-[10px] text-[#aaa] bg-[#f0ede6] px-2 py-1 rounded-full">{total} total</span>
           </div>
 
           {error ? (
             <p className="text-xs text-[#ef4743] p-6">⚠️ {error}</p>
           ) : sessions.length === 0 ? (
-            <div className="p-14 text-center text-[#4d5566] text-xs">
+            <div className="p-14 text-center text-[#aaa] text-xs">
               No submissions yet. Start practising!
             </div>
           ) : (
             <div className="divide-y divide-[#1e2535]">
               {/* Header row */}
-              <div className="grid grid-cols-12 px-6 py-2 text-[10px] uppercase tracking-widest text-[#4d5566]">
+              <div className="grid grid-cols-12 px-6 py-2 text-[10px] uppercase tracking-widest text-[#aaa]">
                 <span className="col-span-1">Status</span>
                 <span className="col-span-5">Problem</span>
                 <span className="col-span-2">Topic</span>
@@ -273,26 +273,26 @@ export default function Profile() {
                 const scoreColor = score >= 7 ? '#39d353' : score >= 5 ? '#ffa116' : '#ef4743';
                 return (
                   <div key={s._id}
-                    className="grid grid-cols-12 px-6 py-3 hover:bg-[#1a2035] transition-colors items-center group">
+                    className="grid grid-cols-12 px-6 py-3 hover:bg-[#faf9f7] transition-colors items-center group">
                     <div className="col-span-1">
                       <div className="w-2 h-2 rounded-full" style={{ background: scoreColor }} />
                     </div>
                     <div className="col-span-5 min-w-0 pr-4">
-                      <p className="text-xs text-[#e6edf3] truncate group-hover:text-white transition-colors">{s.question}</p>
-                      <p className="text-[10px] text-[#4d5566] mt-0.5">{s.role} · {s.level}</p>
+                      <p className="text-xs text-[#111] truncate group-hover:text-white transition-colors">{s.question}</p>
+                      <p className="text-[10px] text-[#aaa] mt-0.5">{s.role} · {s.level}</p>
                     </div>
                     <div className="col-span-2">
-                      <span className="text-[10px] text-[#58a6ff] bg-[#1a2a3a] px-2 py-0.5 rounded border border-[#58a6ff]/20 truncate block max-w-[90px]">
+                      <span className="text-[10px] text-[#58a6ff] bg-indigo-50 px-2 py-0.5 rounded border border-indigo-200 truncate block max-w-[90px]">
                         {s.topic}
                       </span>
                     </div>
                     <div className="col-span-2 flex items-center gap-2">
                       <span className="text-sm font-bold" style={{ color: scoreColor }}>{score}</span>
-                      <span className="text-[10px] text-[#4d5566]">/10</span>
+                      <span className="text-[10px] text-[#aaa]">/10</span>
                       <DiffBadge score={score} />
                     </div>
                     <div className="col-span-2 text-right">
-                      <span className="text-[10px] text-[#4d5566]">
+                      <span className="text-[10px] text-[#aaa]">
                         {new Date(s.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' })}
                       </span>
                     </div>
