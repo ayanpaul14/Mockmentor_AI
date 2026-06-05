@@ -41,34 +41,37 @@ export default function Dashboard() {
       }
     })
       .then(({ data }) => {
-        if (data && Array.isArray(data)) {
-          setSessions(data);
-          
-          const total = data.length;
+        // ✅ REAL FIX: backend returns { sessions, stats } not a plain array
+        const list = data?.sessions ?? (Array.isArray(data) ? data : []);
+        setSessions(list);
+
+        if (data?.stats) {
+          // Use pre-computed stats from backend directly
+          setStats({
+            total: data.stats.total,
+            avgScore: String(data.stats.avgScore),
+            weakestTopic: data.stats.weakestTopic || 'None yet'
+          });
+        } else {
+          // Fallback: compute on frontend if stats missing
+          const total = list.length;
           let totalScore = 0;
           const topicScores = {};
-
-          data.forEach(s => {
+          list.forEach(s => {
             const score = s.scores?.overall || 0;
             totalScore += score;
-
             if (s.topic) {
               if (!topicScores[s.topic]) topicScores[s.topic] = { sum: 0, count: 0 };
               topicScores[s.topic].sum += score;
               topicScores[s.topic].count += 1;
             }
           });
-
           let weakest = 'None yet';
           let lowestAvg = 11;
           Object.keys(topicScores).forEach(topic => {
             const avg = topicScores[topic].sum / topicScores[topic].count;
-            if (avg < lowestAvg) {
-              lowestAvg = avg;
-              weakest = topic;
-            }
+            if (avg < lowestAvg) { lowestAvg = avg; weakest = topic; }
           });
-
           setStats({
             total,
             avgScore: total > 0 ? (totalScore / total).toFixed(1) : '0.0',

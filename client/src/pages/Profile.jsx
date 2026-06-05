@@ -23,9 +23,9 @@ export default function Profile() {
       }
     })
       .then(({ data }) => {
-        if (data && Array.isArray(data)) {
-          setSessions(data);
-        }
+        // ✅ REAL FIX: backend returns { sessions, stats } not a plain array
+        const list = data?.sessions ?? (Array.isArray(data) ? data : []);
+        setSessions(list);
       })
       .catch(() => setError('Could not verify profile metrics stream history.'))
       .finally(() => setLoading(false));
